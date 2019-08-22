@@ -9,15 +9,25 @@ import (
 )
 
 var (
-	localURL         = "http://127.0.0.1:9888/"
-	compileURL       = localURL + "compile"
-	listAccountsURL  = localURL + "list-accounts"
-	listAddressesURL = localURL + "list-addresses"
-	listBalancesURL  = localURL + "list-balances"
+	localURL = "http://127.0.0.1:9888/"
+
+	buildTransactionURL  = localURL + "build-transaction"
+	getTransactionURL    = localURL + "get-transaction"
+	signTransactionURL   = localURL + "sign-transaction"
+	submitTransactionURL = localURL + "submit-transaction"
+
+	compileURL            = localURL + "compile"
+	decodeProgramURL      = localURL + "decode-program"
+	listAccountsURL       = localURL + "list-accounts"
+	listAddressesURL      = localURL + "list-addresses"
+	listBalancesURL       = localURL + "list-balances"
+	listPubkeysURL        = localURL + "list-pubkeys"
+	listUnspentOutputsURL = localURL + "list-unspent-outputs"
 )
 
 func main() {
-	listBalances()
+	balances := listBalances("a1")
+	fmt.Println(balances)
 	listAccounts()
 	addresses := listAddresses("a1")
 	fmt.Println(addresses)
@@ -98,43 +108,17 @@ type Balances struct {
 	Data   []Balance `json:"data"`
 }
 
-func listBalances() {
-	data := []byte(`{
-		"account_alias": "a1"
-		}`)
+func listBalances(accountAlias string) []Balance {
+	data := []byte(`{"account_alias": "` + accountAlias + `"}`)
 	body := request(listBalancesURL, data)
 
 	balances := new(Balances)
 	if err := json.Unmarshal(body, balances); err != nil {
 		fmt.Println(err)
 	}
-	// fmt.Println("balances:", balances)
-	// fmt.Println("status: ", balances.Status)
-	// fmt.Println("amount: ", balances.Data[0].Amount)
+	return balances.Data
 }
 
-func compile() {
-	// data := []byte(`{
-	// 	"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
-	// 	"args":[
-	// 		{
-	// 			"string":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-	// 		},
-	// 		{
-	// 			"integer":1000000000
-	// 		},
-	// 		{
-	// 			"string":"00145dd7b82556226d563b6e7d573fe61d23bd461c1f"
-	// 		},
-	// 		{
-	// 			"string":"3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e"
-	// 		}
-	// 	]
-	// }`)
-	// body := request(compileURL, data)
-
-}
-
-func builTransaction() {
+func listPubkeys(accountAlias string) {
 
 }
