@@ -33,6 +33,10 @@ func main() {
 	fmt.Println(addresses)
 	pubkeyInfo := listPubkeys("a1")
 	fmt.Println(pubkeyInfo)
+	seller := "00145dd7b82556226d563b6e7d573fe61d23bd461c1f"
+	cancelKey := "3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e"
+	contractInfo := compile(seller, cancelKey)
+	fmt.Println(contractInfo)
 }
 
 func request(URL string, data []byte) []byte {
@@ -145,4 +149,40 @@ func listPubkeys(accountAlias string) KeyInfo {
 		fmt.Println(err)
 	}
 	return pubkeys.Data
+}
+
+type ContractInfo struct {
+	Program string `json:"program"`
+}
+
+type Contract struct {
+	Status string       `json:"status"`
+	Data   ContractInfo `json:"data"`
+}
+
+func compile(seller, cancelKey string) ContractInfo {
+	data := []byte(`{
+		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
+		"args":[
+			{
+				"string":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+			},
+			{
+				"integer":1000000000
+			},
+			{
+				"string":"` + seller + `"
+			},
+			{
+				"string":"` + cancelKey + `"
+			}
+		]
+	}`)
+	body := request(compileURL, data)
+
+	contract := new(Contract)
+	if err := json.Unmarshal(body, contract); err != nil {
+		fmt.Println(err)
+	}
+	return contract.Data
 }
