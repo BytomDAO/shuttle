@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 var (
@@ -185,4 +186,31 @@ func compile(seller, cancelKey string) ContractInfo {
 		fmt.Println(err)
 	}
 	return contract.Data
+}
+
+func buildTransaction(assetID, controlProgram string, amount uint64) {
+	data := []byte(`{
+		"actions":[
+			{
+				"account_id":"10CJPO1HG0A02",
+				"amount":` + strconv.FormatUint(amount, 10) + `,
+				"asset_id":"` + assetID + `",
+				"type":"spend_account"
+			},
+			{
+				"amount":` + strconv.FormatUint(amount, 10) + `,
+				"asset_id":"` + assetID + `",
+				"control_program":"` + controlProgram + `",
+				"type":"control_program"
+			},
+			{
+				"account_id":"10CJPO1HG0A02",
+				"amount":100000000,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"type":"spend_account"
+			}
+		],
+		"ttl":0,
+		"base_transaction":null
+	}`)
 }
