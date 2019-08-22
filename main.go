@@ -14,16 +14,6 @@ var (
 	listBalancesURL = localURL + "list-balances"
 )
 
-type Balance struct {
-	AccountID string `json:"account_id"`
-	Amount    uint64 `json:"amount"`
-}
-
-type Balances struct {
-	Status string    `json:"status"`
-	Data   []Balance `json:"data"`
-}
-
 func main() {
 	listBalances()
 }
@@ -46,6 +36,16 @@ func request(URL string, data []byte) []byte {
 
 func listAccounts() {
 
+}
+
+type Balance struct {
+	AccountID string `json:"account_id"`
+	Amount    uint64 `json:"amount"`
+}
+
+type Balances struct {
+	Status string    `json:"status"`
+	Data   []Balance `json:"data"`
 }
 
 func listBalances() {
