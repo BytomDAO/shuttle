@@ -31,6 +31,8 @@ func main() {
 	listAccounts()
 	addresses := listAddresses("a1")
 	fmt.Println(addresses)
+	pubkeyInfo := listPubkeys("a1")
+	fmt.Println(pubkeyInfo)
 }
 
 func request(URL string, data []byte) []byte {
@@ -119,6 +121,28 @@ func listBalances(accountAlias string) []Balance {
 	return balances.Data
 }
 
-func listPubkeys(accountAlias string) {
+type PubkeyInfo struct {
+	Pubkey string   `json:"pubkey"`
+	Path   []string `json:"derivation_path"`
+}
 
+type KeyInfo struct {
+	XPubkey     string       `json:"root_xpub"`
+	PubkeyInfos []PubkeyInfo `json:"pubkey_infos"`
+}
+
+type Pubkeys struct {
+	Status string  `json:"status"`
+	Data   KeyInfo `json:"data"`
+}
+
+func listPubkeys(accountAlias string) KeyInfo {
+	data := []byte(`{"account_alias": "` + accountAlias + `"}`)
+	body := request(listPubkeysURL, data)
+
+	pubkeys := new(Pubkeys)
+	if err := json.Unmarshal(body, pubkeys); err != nil {
+		fmt.Println(err)
+	}
+	return pubkeys.Data
 }
