@@ -55,6 +55,10 @@ func main() {
 
 	txID := submitTransaction(signedTransaction)
 	fmt.Println("txID:", txID)
+
+	txID = "5ebf9cb8d3e98450ba0c41a5cf60fd04da388c6da06addc2eb8e07265305a30a"
+	contractUTXOID := getContractUTXOID(txID, controlProgram)
+	fmt.Println("contractUTXOID:", contractUTXOID)
 }
 
 func request(URL string, data []byte) []byte {
@@ -283,4 +287,37 @@ func submitTransaction(rawTransaction string) string {
 		fmt.Println(err)
 	}
 	return submitedTransaction.Data.TxID
+}
+
+type TransactionOutput struct {
+	TransactionOutputID string `json:"id"`
+	ControlProgram      string `json:"control_program"`
+}
+
+type GotTransactionInfo struct {
+	TransactionOutputs []TransactionOutput `json:"outputs"`
+}
+
+type getTransactionResponse struct {
+	Status string             `json:"status"`
+	Data   GotTransactionInfo `json:"data"`
+}
+
+// getContractUTXOID get contract UTXO ID by transaction ID and control program.
+func getContractUTXOID(transactionID, controlProgram string) string {
+	data := []byte(`{"tx_id":"` + transactionID + `"}`)
+	body := request(getTransactionURL, data)
+
+	getTransactionResponse := new(getTransactionResponse)
+	if err := json.Unmarshal(body, getTransactionResponse); err != nil {
+		fmt.Println(err)
+	}
+
+	for _, v := range getTransactionResponse.Data.TransactionOutputs {
+		if v.ControlProgram == controlProgram {
+			return v.TransactionOutputID
+		}
+	}
+
+	return ""
 }
