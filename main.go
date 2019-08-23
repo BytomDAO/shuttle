@@ -29,15 +29,26 @@ var (
 func main() {
 	balances := listBalances("a1")
 	fmt.Println(balances)
-	listAccounts()
+
+	accounts := listAccounts()
+	fmt.Println(accounts)
+
 	addresses := listAddresses("a1")
 	fmt.Println(addresses)
+
 	pubkeyInfo := listPubkeys("a1")
 	fmt.Println(pubkeyInfo)
+
 	seller := "00145dd7b82556226d563b6e7d573fe61d23bd461c1f"
 	cancelKey := "3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e"
 	contractInfo := compile(seller, cancelKey)
 	fmt.Println(contractInfo)
+
+	assetID := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
+	amount := uint64(20000000000)
+	controlProgram := "203e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e1600145dd7b82556226d563b6e7d573fe61d23bd461c1f0400ca9a3b20ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c0"
+	tx := buildTransaction(assetID, controlProgram, amount)
+	fmt.Println(tx)
 }
 
 func request(URL string, data []byte) []byte {
@@ -188,7 +199,12 @@ func compile(seller, cancelKey string) ContractInfo {
 	return contract.Data
 }
 
-func buildTransaction(assetID, controlProgram string, amount uint64) {
+type BuildTransaction struct {
+	Status string      `json:"status"`
+	Data   interface{} `json:"data"`
+}
+
+func buildTransaction(assetID, controlProgram string, amount uint64) []byte {
 	data := []byte(`{
 		"actions":[
 			{
@@ -213,4 +229,6 @@ func buildTransaction(assetID, controlProgram string, amount uint64) {
 		"ttl":0,
 		"base_transaction":null
 	}`)
+	body := request(buildTransactionURL, data)
+	return body
 }
