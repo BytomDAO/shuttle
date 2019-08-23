@@ -52,6 +52,9 @@ func main() {
 	password := "12345"
 	signedTransaction := signTransaction(password, string(tx))
 	fmt.Println("signedTransaction:", signedTransaction)
+
+	txID := submitTransaction(signedTransaction)
+	fmt.Println("txID:", txID)
 }
 
 func request(URL string, data []byte) []byte {
@@ -253,7 +256,6 @@ func signTransaction(password, transaction string) string {
 	data := []byte(`{
 		"password": "` + password + `",
 		"transaction` + transaction[25:])
-	fmt.Println(data)
 	body := request(signTransactionURL, data)
 
 	signedTransaction := new(signedTransaction)
@@ -261,4 +263,24 @@ func signTransaction(password, transaction string) string {
 		fmt.Println(err)
 	}
 	return signedTransaction.Data.SignedTransaction.RawTransaction
+}
+
+type TransactionID struct {
+	TxID string `json:"tx_id"`
+}
+
+type submitedTransaction struct {
+	Status string        `json:"status"`
+	Data   TransactionID `json:"data"`
+}
+
+func submitTransaction(rawTransaction string) string {
+	data := []byte(`{"raw_transaction": "` + rawTransaction + `"}`)
+	body := request(submitTransactionURL, data)
+
+	submitedTransaction := new(submitedTransaction)
+	if err := json.Unmarshal(body, submitedTransaction); err != nil {
+		fmt.Println(err)
+	}
+	return submitedTransaction.Data.TxID
 }
