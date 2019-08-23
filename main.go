@@ -329,3 +329,50 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 
 	return "", errFailedGetContractUTXOID
 }
+
+func buildUnlockContractTransaction(outputID string) {
+	data := []byte(`{
+		"actions":[
+			{
+				"type":"spend_account_unspent_output",
+				"arguments":[
+					{
+						"type":"integer",
+						"raw_data":{
+							"value":0
+						}
+					}
+				],
+				"output_id":"` + outputID + `"
+			},
+			{
+				"amount":1000000000,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"control_program":"00145dd7b82556226d563b6e7d573fe61d23bd461c1f",
+				"type":"control_program"
+			},
+			{
+				"account_id":"10CKAD3000A02",
+				"amount":1000000000,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"type":"spend_account"
+			},
+			{
+				"account_id":"10CKAD3000A02",
+				"amount":100000000,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"type":"spend_account"
+			},
+			{
+				"amount":20000000000,
+				"asset_id":"bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a",
+				"control_program":"00140fdee108543d305308097019ceb5aec3da60ec66",
+				"type":"control_program"
+			}
+		],
+		"ttl":0,
+		"base_transaction":null
+	}`)
+	body := request(buildTransactionURL, data)
+
+}
