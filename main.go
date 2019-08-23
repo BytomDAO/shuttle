@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -23,6 +24,10 @@ var (
 	listBalancesURL       = localURL + "list-balances"
 	listPubkeysURL        = localURL + "list-pubkeys"
 	listUnspentOutputsURL = localURL + "list-unspent-outputs"
+)
+
+var (
+	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
 )
 
 func main() {
@@ -57,7 +62,10 @@ func main() {
 	fmt.Println("txID:", txID)
 
 	txID = "5ebf9cb8d3e98450ba0c41a5cf60fd04da388c6da06addc2eb8e07265305a30a"
-	contractUTXOID := getContractUTXOID(txID, controlProgram)
+	contractUTXOID, err := getContractUTXOID(txID, controlProgram)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("contractUTXOID:", contractUTXOID)
 }
 
@@ -304,7 +312,7 @@ type getTransactionResponse struct {
 }
 
 // getContractUTXOID get contract UTXO ID by transaction ID and control program.
-func getContractUTXOID(transactionID, controlProgram string) string {
+func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 	data := []byte(`{"tx_id":"` + transactionID + `"}`)
 	body := request(getTransactionURL, data)
 
@@ -315,9 +323,9 @@ func getContractUTXOID(transactionID, controlProgram string) string {
 
 	for _, v := range getTransactionResponse.Data.TransactionOutputs {
 		if v.ControlProgram == controlProgram {
-			return v.TransactionOutputID
+			return v.TransactionOutputID, nil
 		}
 	}
 
-	return ""
+	return "", errFailedGetContractUTXOID
 }
