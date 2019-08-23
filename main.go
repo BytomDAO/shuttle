@@ -12,11 +12,10 @@ import (
 var (
 	localURL = "http://127.0.0.1:9888/"
 
-	buildTransactionURL  = localURL + "build-transaction"
-	getTransactionURL    = localURL + "get-transaction"
-	signTransactionURL   = localURL + "sign-transaction"
-	submitTransactionURL = localURL + "submit-transaction"
-
+	buildTransactionURL   = localURL + "build-transaction"
+	getTransactionURL     = localURL + "get-transaction"
+	signTransactionURL    = localURL + "sign-transaction"
+	submitTransactionURL  = localURL + "submit-transaction"
 	compileURL            = localURL + "compile"
 	decodeProgramURL      = localURL + "decode-program"
 	listAccountsURL       = localURL + "list-accounts"
@@ -49,6 +48,10 @@ func main() {
 	controlProgram := "203e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e1600145dd7b82556226d563b6e7d573fe61d23bd461c1f0400ca9a3b20ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c0"
 	tx := buildTransaction(assetID, controlProgram, amount)
 	fmt.Println(tx)
+
+	password := "12345"
+	signedTransaction := signTransaction(password, string(tx))
+	fmt.Println("signedTransaction:", signedTransaction)
 }
 
 func request(URL string, data []byte) []byte {
@@ -231,4 +234,31 @@ func buildTransaction(assetID, controlProgram string, amount uint64) []byte {
 	}`)
 	body := request(buildTransactionURL, data)
 	return body
+}
+
+type SignedTransaction struct {
+	RawTransaction string `json:"raw_transaction"`
+}
+
+type TransactionData struct {
+	SignedTransaction SignedTransaction `json:"transaction"`
+}
+
+type signedTransaction struct {
+	Status string          `json:"status"`
+	Data   TransactionData `json:"data"`
+}
+
+func signTransaction(password, transaction string) string {
+	data := []byte(`{
+		"password": "` + password + `",
+		"transaction` + transaction[25:])
+	fmt.Println(data)
+	body := request(signTransactionURL, data)
+
+	signedTransaction := new(signedTransaction)
+	if err := json.Unmarshal(body, signedTransaction); err != nil {
+		fmt.Println(err)
+	}
+	return signedTransaction.Data.SignedTransaction.RawTransaction
 }
