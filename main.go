@@ -61,12 +61,15 @@ func main() {
 	txID := submitTransaction(signedTransaction)
 	fmt.Println("txID:", txID)
 
-	txID = "5ebf9cb8d3e98450ba0c41a5cf60fd04da388c6da06addc2eb8e07265305a30a"
+	// txID := "e15674a9c694f56a0d172152df8dc28bbbe89f9828feb8398d3ebfb4e2f104ae"
 	contractUTXOID, err := getContractUTXOID(txID, controlProgram)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("contractUTXOID:", contractUTXOID)
+
+	// tx = buildUnlockContractTransaction(contractUTXOID, seller)
+	// fmt.Println(tx)
 }
 
 func request(URL string, data []byte) []byte {
@@ -330,7 +333,7 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 	return "", errFailedGetContractUTXOID
 }
 
-func buildUnlockContractTransaction(outputID string) {
+func buildUnlockContractTransaction(outputID, seller string) []byte {
 	data := []byte(`{
 		"actions":[
 			{
@@ -348,7 +351,7 @@ func buildUnlockContractTransaction(outputID string) {
 			{
 				"amount":1000000000,
 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-				"control_program":"00145dd7b82556226d563b6e7d573fe61d23bd461c1f",
+				"control_program":"` + seller + `",
 				"type":"control_program"
 			},
 			{
@@ -374,5 +377,5 @@ func buildUnlockContractTransaction(outputID string) {
 		"base_transaction":null
 	}`)
 	body := request(buildTransactionURL, data)
-
+	return body
 }
