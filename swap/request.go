@@ -38,6 +38,6 @@ func request(URL string, data []byte) []byte {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("response Body:", string(body))
+	// fmt.Println("response Body:", string(body))
 	return body
 }

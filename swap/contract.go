@@ -25,11 +25,11 @@ func ListAccounts() []Account {
 	data := []byte(`{}`)
 	body := request(listAccountsURL, data)
 
-	accounts := new(AccountsResponse)
-	if err := json.Unmarshal(body, accounts); err != nil {
+	accountsResp := new(AccountsResponse)
+	if err := json.Unmarshal(body, accountsResp); err != nil {
 		fmt.Println(err)
 	}
-	return accounts.Data
+	return accountsResp.Data
 }
 
 type Address struct {
@@ -71,11 +71,11 @@ func ListBalances(accountAlias string) []Balance {
 	data := []byte(`{"account_alias": "` + accountAlias + `"}`)
 	body := request(listBalancesURL, data)
 
-	balances := new(BalancesResponse)
-	if err := json.Unmarshal(body, balances); err != nil {
+	balancesResp := new(BalancesResponse)
+	if err := json.Unmarshal(body, balancesResp); err != nil {
 		fmt.Println(err)
 	}
-	return balances.Data
+	return balancesResp.Data
 }
 
 type PubkeyInfo struct {
@@ -97,11 +97,11 @@ func ListPubkeys(accountAlias string) KeyInfo {
 	data := []byte(`{"account_alias": "` + accountAlias + `"}`)
 	body := request(listPubkeysURL, data)
 
-	pubkeys := new(PubkeysResponse)
-	if err := json.Unmarshal(body, pubkeys); err != nil {
+	pubkeysResp := new(PubkeysResponse)
+	if err := json.Unmarshal(body, pubkeysResp); err != nil {
 		fmt.Println(err)
 	}
-	return pubkeys.Data
+	return pubkeysResp.Data
 }
 
 type ContractInfo struct {
@@ -113,15 +113,15 @@ type ContractResponse struct {
 	Data   ContractInfo `json:"data"`
 }
 
-func Compile(seller, cancelKey string) ContractInfo {
+func CompileLockContract(assetRequested, seller, cancelKey string, amountRequested uint64) ContractInfo {
 	data := []byte(`{
 		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
 		"args":[
 			{
-				"string":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+				"string":"` + assetRequested + `"
 			},
 			{
-				"integer":1000000000
+				"integer":` + strconv.FormatUint(amountRequested, 10) + `
 			},
 			{
 				"string":"` + seller + `"
