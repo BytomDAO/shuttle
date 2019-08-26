@@ -145,11 +145,12 @@ func CompileLockContract(assetRequested, seller, cancelKey string, amountRequest
 // 	Data   interface{} `json:"data"`
 // }
 
-func BuildLockTransaction(accountIDSent, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) []byte {
+// BuildLockTransaction build locked contract transaction.
+func BuildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) []byte {
 	data := []byte(`{
 		"actions":[
 			{
-				"account_id":"` + accountIDSent + `",
+				"account_id":"` + accountIDLocked + `",
 				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
 				"asset_id":"` + assetIDLocked + `",
 				"type":"spend_account"
@@ -161,7 +162,7 @@ func BuildLockTransaction(accountIDSent, assetIDLocked, contractControlProgram s
 				"type":"control_program"
 			},
 			{
-				"account_id":"` + accountIDSent + `",
+				"account_id":"` + accountIDLocked + `",
 				"amount":` + strconv.FormatUint(txFee, 10) + `,
 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 				"type":"spend_account"
@@ -187,6 +188,7 @@ type signedTransactionResponse struct {
 	Data   TransactionData `json:"data"`
 }
 
+// SignTransaction sign built contract transaction.
 func SignTransaction(password, transaction string) string {
 	data := []byte(`{
 		"password": "` + password + `",
@@ -209,6 +211,7 @@ type submitedTransactionResponse struct {
 	Data   TransactionID `json:"data"`
 }
 
+// SubmitTransaction submit raw singed contract transaction.
 func SubmitTransaction(rawTransaction string) string {
 	data := []byte(`{"raw_transaction": "` + rawTransaction + `"}`)
 	body := request(submitTransactionURL, data)
@@ -234,7 +237,7 @@ type getTransactionResponse struct {
 	Data   GotTransactionInfo `json:"data"`
 }
 
-// GetContractUTXOID get contract UTXO ID by transaction ID and control program.
+// GetContractUTXOID get contract UTXO ID by transaction ID and contract control program.
 func GetContractUTXOID(transactionID, controlProgram string) (string, error) {
 	data := []byte(`{"tx_id":"` + transactionID + `"}`)
 	body := request(getTransactionURL, data)
