@@ -256,7 +256,8 @@ func GetContractUTXOID(transactionID, controlProgram string) (string, error) {
 	return "", errFailedGetContractUTXOID
 }
 
-func BuildUnlockContractTransaction(outputID, seller string) []byte {
+// BuildUnlockContractTransaction build unlocked contract transaction.
+func BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram string, amountRequested, amountLocked, txFee uint64) []byte {
 	data := []byte(`{
 		"actions":[
 			{
@@ -269,30 +270,33 @@ func BuildUnlockContractTransaction(outputID, seller string) []byte {
 						}
 					}
 				],
-				"output_id":"` + outputID + `"
+				"use_unconfirmed":true,
+				"output_id":"` + contractUTXOID + `"
 			},
 			{
-				"amount":1000000000,
-				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
+				"asset_id":"` + assetRequested + `",
 				"control_program":"` + seller + `",
 				"type":"control_program"
 			},
 			{
-				"account_id":"10CKAD3000A02",
-				"amount":1000000000,
-				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"account_id":"` + accountIDUnlocked + `",
+				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
+				"asset_id":"` + assetRequested + `",
+				"use_unconfirmed":true,
 				"type":"spend_account"
 			},
 			{
-				"account_id":"10CKAD3000A02",
-				"amount":100000000,
+				"account_id":"` + accountIDUnlocked + `",
+				"amount":` + strconv.FormatUint(txFee, 10) + `,
 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"use_unconfirmed":true,
 				"type":"spend_account"
 			},
 			{
-				"amount":20000000000,
-				"asset_id":"bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a",
-				"control_program":"00140fdee108543d305308097019ceb5aec3da60ec66",
+				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
+				"asset_id":"` + assetIDLocked + `",
+				"control_program":"` + buyerContolProgram + `",
 				"type":"control_program"
 			}
 		],
