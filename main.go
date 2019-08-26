@@ -31,7 +31,7 @@ func main() {
 
 	accountIDUnlocked := "10CKAD3000A02"                                 // accountIDUnlocked represents account ID which create unlocked contract
 	buyerContolProgram := "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
-	// accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
+	accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
 
 	// compile locked contract
 	contractInfo := swap.CompileLockContract(assetRequested, seller, cancelKey, amountRequested)
@@ -56,8 +56,15 @@ func main() {
 	}
 	fmt.Println("--> contractUTXOID:", contractUTXOID)
 
-	//
-	// contractUTXOID = "38c0b998f8437aebe2be45e3c1893551ce303ff940fd2fcbb696f003233bdf5b"
+	// build unlocked contract transaction
 	txUnlocked := swap.BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
 	fmt.Println("--> txUnlocked:", string(txUnlocked))
+
+	// sign unlocked contract transaction
+	signedTransaction = swap.SignTransaction(accountPasswordUnlocked, string(txUnlocked))
+	fmt.Println("--> signedTransaction:", signedTransaction)
+
+	// submit signed unlocked contract transaction
+	txID = swap.SubmitTransaction(signedTransaction)
+	fmt.Println("--> txID:", txID)
 }
