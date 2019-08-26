@@ -140,11 +140,6 @@ func CompileLockContract(assetRequested, seller, cancelKey string, amountRequest
 	return contract.Data
 }
 
-// type BuildTransactionResponse struct {
-// 	Status string      `json:"status"`
-// 	Data   interface{} `json:"data"`
-// }
-
 // BuildLockTransaction build locked contract transaction.
 func BuildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) []byte {
 	data := []byte(`{
