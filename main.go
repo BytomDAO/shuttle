@@ -33,38 +33,7 @@ func main() {
 	buyerContolProgram := "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
 	accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
 
-	// compile locked contract
-	contractInfo := swap.CompileLockContract(assetRequested, seller, cancelKey, amountRequested)
-	fmt.Println("--> contract info:", contractInfo)
-
-	// build locked contract
-	txLocked := swap.BuildLockTransaction(accountIDLocked, assetIDLocked, contractInfo.Program, amountLocked, txFee)
-	fmt.Println("--> txLocked:", string(txLocked))
-
-	// sign locked contract transaction
-	signedTransaction := swap.SignTransaction(accountPasswordLocked, string(txLocked))
-	fmt.Println("--> signedTransaction:", signedTransaction)
-
-	// submit signed transaction
-	txID := swap.SubmitTransaction(signedTransaction)
-	fmt.Println("--> txID:", txID)
-
-	// get contract output ID
-	contractUTXOID, err := swap.GetContractUTXOID(txID, contractInfo.Program)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("--> contractUTXOID:", contractUTXOID)
-
-	// build unlocked contract transaction
-	txUnlocked := swap.BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
-	fmt.Println("--> txUnlocked:", string(txUnlocked))
-
-	// sign unlocked contract transaction
-	signedTransaction = swap.SignTransaction(accountPasswordUnlocked, string(txUnlocked))
-	fmt.Println("--> signedTransaction:", signedTransaction)
-
-	// submit signed unlocked contract transaction
-	txID = swap.SubmitTransaction(signedTransaction)
+	contractUTXOID := swap.DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, accountPasswordLocked, amountRequested, amountLocked, txFee)
+	txID := swap.CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked, amountRequested, amountLocked, txFee)
 	fmt.Println("--> txID:", txID)
 }
