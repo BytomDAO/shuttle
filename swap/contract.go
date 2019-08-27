@@ -208,3 +208,30 @@ func BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, a
 	body := request(buildTransactionURL, data)
 	return body
 }
+
+// DeployContract deploy contract.
+func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, password string, amountRequested, amountLocked, txFee uint64) string {
+	// compile locked contract
+	contractInfo := CompileLockContract(assetRequested, seller, cancelKey, amountRequested)
+	fmt.Println("--> contract info:", contractInfo)
+
+	// build locked contract
+	txLocked := BuildLockTransaction(accountIDLocked, assetLocked, contractInfo.Program, amountLocked, txFee)
+	fmt.Println("--> txLocked:", string(txLocked))
+
+	// sign locked contract transaction
+	signedTransaction := SignTransaction(password, string(txLocked))
+	fmt.Println("--> signedTransaction:", signedTransaction)
+
+	// submit signed transaction
+	txID := SubmitTransaction(signedTransaction)
+	fmt.Println("--> txID:", txID)
+
+	// get contract output ID
+	contractUTXOID, err := GetContractUTXOID(txID, contractInfo.Program)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("--> contractUTXOID:", contractUTXOID)
+	return contractUTXOID
+}

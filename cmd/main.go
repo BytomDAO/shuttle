@@ -2,6 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
+
+	"github.com/btm-swap-tool/swap"
 )
 
 var (
@@ -42,11 +45,27 @@ func main() {
 	var assetLocked string
 	flag.StringVar(&assetLocked, "assetLocked", "", "asset ID, which is asset ID locked in contract by creator.")
 
-	var amountLocked string
-	flag.StringVar(&amountLocked, "amountLocked", "", "asset amount, which is asset amount locked in contract by creator.")
+	var amountLocked uint64
+	flag.Uint64Var(&amountLocked, "amountLocked", uint64(0), "asset amount, which is asset amount locked in contract by creator.")
 
 	var txFee uint64
 	flag.Uint64Var(&txFee, "txFee", uint64(50000000), "tx fee, which is transaction fee.")
 
 	flag.Parse()
+
+	// deploy contract
+
+	//
+
+	// build unlocked contract transaction
+	txUnlocked := swap.BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
+	fmt.Println("--> txUnlocked:", string(txUnlocked))
+
+	// sign unlocked contract transaction
+	signedTransaction = swap.SignTransaction(accountPasswordUnlocked, string(txUnlocked))
+	fmt.Println("--> signedTransaction:", signedTransaction)
+
+	// submit signed unlocked contract transaction
+	txID = swap.SubmitTransaction(signedTransaction)
+	fmt.Println("--> txID:", txID)
 }
