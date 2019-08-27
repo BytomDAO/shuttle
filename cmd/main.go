@@ -2,25 +2,51 @@ package main
 
 import (
 	"flag"
-	"fmt"
+)
+
+var (
+	accountIDLocked       = "10CJPO1HG0A02"                                                    // accountIDLocked represents account which create locked contract
+	accountPasswordLocked = "12345"                                                            // accountPasswordLocked represents account password which create locked contract
+	assetRequested        = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // assetRequested represents asset ID which can unlock contract
+	amountRequested       = uint64(1000000000)                                                 // amountRequested represents asset amount which can unlock contract
+	seller                = "00145dd7b82556226d563b6e7d573fe61d23bd461c1f"                     // control program which want to receive assetRequested
+	cancelKey             = "3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e" // cancelKey can cancel swap contract
+	assetLocked           = "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a" // assetIDLocked represents locked asset ID
+	amountLocked          = uint64(20000000000)                                                // amountLocked represents locked asset amount
+	txFee                 = uint64(50000000)                                                   // txFee represents transaction fee
+
+	accountIDUnlocked       = "10CKAD3000A02"                                // accountIDUnlocked represents account ID which create unlocked contract
+	buyerContolProgram      = "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
+	accountPasswordUnlocked = "12345"                                        // accountPasswordUnlocked represents account password which create locked contract
 )
 
 func main() {
-	wordPtr := flag.String("word", "foo", "a string")
-	numbPtr := flag.Int("numb", 42, "an int")
-	boolPtr := flag.Bool("fork", false, "a bool")
-	//用程序中已有的参数来声明一个标志也是可以的。注意在标志声明函数中需要使用该参数的指针。
-	var svar string
-	flag.StringVar(&svar, "svar", "bar", "a string var")
+	var accountID string
+	flag.StringVar(&accountID, "accountID", "", "account ID, which is an identifier of account.")
 
-	//所有标志都声明完成以后，调用 flag.Parse() 来执行命令行解析。
-	//这是关键步骤，不要忘记！！！
+	var password string
+	flag.StringVar(&password, "password", "", "account password, which can decrypt account key.")
+
+	var assetRequested string
+	flag.StringVar(&assetRequested, "assetRequested", "", "asset ID, which is asset ID sent to locked contract by buyer.")
+
+	var amountRequested uint64
+	flag.Uint64Var(&amountRequested, "amountRequested", uint64(0), "asset amount, which is asset amount sent to locked contract by buyer.")
+
+	var seller string
+	flag.StringVar(&seller, "seller", "", "seller is control program of contract creator.")
+
+	var cancelKey string
+	flag.StringVar(&cancelKey, "cancelKey", "", "public key, which can cancel contract.")
+
+	var assetLocked string
+	flag.StringVar(&assetLocked, "assetLocked", "", "asset ID, which is asset ID locked in contract by creator.")
+
+	var amountLocked string
+	flag.StringVar(&amountLocked, "amountLocked", "", "asset amount, which is asset amount locked in contract by creator.")
+
+	var txFee uint64
+	flag.Uint64Var(&txFee, "txFee", uint64(50000000), "tx fee, which is transaction fee.")
+
 	flag.Parse()
-	//这里我们将仅输出解析的选项以及后面的位置参数。
-	//注意，我们需要使用类似 *wordPtr 这样的语法来对指针解引用，从而得到选项的实际值。
-	fmt.Println("word:", *wordPtr)
-	fmt.Println("numb:", *numbPtr)
-	fmt.Println("fork:", *boolPtr)
-	fmt.Println("svar:", svar)
-	fmt.Println("tail:", flag.Args())
 }
