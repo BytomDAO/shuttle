@@ -210,7 +210,7 @@ func BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, a
 }
 
 // DeployContract deploy contract.
-func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, password string, amountRequested, amountLocked, txFee uint64) string {
+func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) string {
 	// compile locked contract
 	contractInfo := CompileLockContract(assetRequested, seller, cancelKey, amountRequested)
 	fmt.Println("--> contract info:", contractInfo)
@@ -220,7 +220,7 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 	fmt.Println("--> txLocked:", string(txLocked))
 
 	// sign locked contract transaction
-	signedTransaction := SignTransaction(password, string(txLocked))
+	signedTransaction := SignTransaction(accountPasswordLocked, string(txLocked))
 	fmt.Println("--> signedTransaction:", signedTransaction)
 
 	// submit signed transaction
@@ -234,4 +234,20 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 	}
 	fmt.Println("--> contractUTXOID:", contractUTXOID)
 	return contractUTXOID
+}
+
+// CallContract call contract.
+func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) string {
+	// build unlocked contract transaction
+	txUnlocked := BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
+	fmt.Println("--> txUnlocked:", string(txUnlocked))
+
+	// sign unlocked contract transaction
+	signedTransaction := SignTransaction(accountPasswordUnlocked, string(txUnlocked))
+	fmt.Println("--> signedTransaction:", signedTransaction)
+
+	// submit signed unlocked contract transaction
+	txID := SubmitTransaction(signedTransaction)
+	fmt.Println("--> txID:", txID)
+	return txID
 }
