@@ -31,6 +31,7 @@ var (
 	errInvalidAccountID      = errors.New("accountID is invalid")
 	errInvalidAssetIDLocked  = errors.New("assetIDLocked is invalid")
 	errInvalidTxFee          = errors.New("txFee is invalid")
+	errInvalidAmountLocked   = errors.New("amountLocked is invalid")
 )
 
 func main() {
@@ -66,7 +67,7 @@ func main() {
 	// fmt.Println("arg is :", flag.Arg(0))
 
 	if flag.Arg(0) == "deploy" {
-		if err := checkDeployParameter(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, txFee); err != nil {
+		if err := checkDeployParameter(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, txFee, amountLocked); err != nil {
 			panic(err)
 		}
 		contractUTXOID := swap.DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, accountPasswordLocked, amountRequested, amountLocked, txFee)
@@ -78,7 +79,7 @@ func main() {
 	// fmt.Println("--> txID:", txID)
 }
 
-func checkDeployParameter(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked string, txFee uint64) error {
+func checkDeployParameter(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked string, txFee, amountLocked uint64) error {
 	if len(assetRequested) != 64 {
 		return errInvalidAssetRequested
 	}
@@ -101,6 +102,10 @@ func checkDeployParameter(assetRequested, seller, cancelKey, accountIDLocked, as
 
 	if txFee == uint64(0) {
 		return errInvalidTxFee
+	}
+
+	if amountLocked == uint64(0) {
+		return errInvalidAmountLocked
 	}
 
 	return nil
