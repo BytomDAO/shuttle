@@ -261,14 +261,19 @@ func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, asse
 		panic(err)
 	}
 	fmt.Println("--> txUnlocked:", txUnlocked)
-	return ""
 
-	// // sign unlocked contract transaction
-	// signedTransaction := SignTransaction(accountPasswordUnlocked, string(txUnlocked))
-	// fmt.Println("--> signedTransaction:", signedTransaction)
+	// sign unlocked contract transaction
+	signedTransaction, err := signTransaction(accountPasswordUnlocked, txUnlocked)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> signedTransaction:", signedTransaction)
 
-	// // submit signed unlocked contract transaction
-	// txID := SubmitTransaction(signedTransaction)
-	// fmt.Println("--> txID:", txID)
-	// return txID
+	// submit signed unlocked contract transaction
+	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> txID:", txID)
+	return txID
 }
