@@ -3,7 +3,6 @@ package swap
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 )
 
@@ -215,65 +214,58 @@ func buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, a
 }
 
 // DeployContract deploy contract.
-func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) string {
+func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) (string, error) {
 	// compile locked contract
 	contractControlProgram, err := compileLockContract(assetRequested, seller, cancelKey, amountRequested)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> contractControlProgram:", contractControlProgram)
 
 	// build locked contract
 	txLocked, err := buildLockTransaction(accountIDLocked, assetLocked, contractControlProgram, amountLocked, txFee)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> txLocked:", txLocked)
 
 	// sign locked contract transaction
 	signedTransaction, err := signTransaction(accountPasswordLocked, txLocked)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> signedTransaction:", signedTransaction)
 
 	// submit signed transaction
 	txID, err := submitTransaction(signedTransaction)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> txID:", txID)
 
 	// get contract output ID
 	contractUTXOID, err := getContractUTXOID(txID, contractControlProgram)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> contractUTXOID:", contractUTXOID)
-	return contractUTXOID
+	return contractUTXOID, nil
 }
 
 // CallContract call contract.
-func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) string {
+func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) (string, error) {
 	// build unlocked contract transaction
 	txUnlocked, err := buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> txUnlocked:", txUnlocked)
 
 	// sign unlocked contract transaction
 	signedTransaction, err := signTransaction(accountPasswordUnlocked, txUnlocked)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> signedTransaction:", signedTransaction)
 
 	// submit signed unlocked contract transaction
 	txID, err := submitTransaction(signedTransaction)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	fmt.Println("--> txID:", txID)
-	return txID
+
+	return txID, nil
 }

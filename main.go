@@ -33,8 +33,13 @@ func main() {
 	buyerContolProgram := "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
 	accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
 
-	contractUTXOID := swap.DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, accountPasswordLocked, amountRequested, amountLocked, txFee)
-	fmt.Println(contractUTXOID)
-	txID := swap.CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked, amountRequested, amountLocked, txFee)
+	contractUTXOID, err := swap.DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, accountPasswordLocked, amountRequested, amountLocked, txFee)
+	if err != nil {
+		panic(err)
+	}
+	txID, err := swap.CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked, amountRequested, amountLocked, txFee)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("--> txID:", txID)
 }
