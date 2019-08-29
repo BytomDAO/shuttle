@@ -117,6 +117,7 @@ func submitTransaction(rawTransaction string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	res := new(submitTransactionResponse)
 	if err := request(submitTransactionURL, payload, res); err != nil {
 		return "", err
@@ -125,50 +126,39 @@ func submitTransaction(rawTransaction string) (string, error) {
 	return res.TransactionID, nil
 }
 
-// // SubmitTransaction submit raw singed contract transaction.
-// func SubmitTransaction(rawTransaction string) string {
-// 	data := []byte(`{"raw_transaction": "` + rawTransaction + `"}`)
-// 	body := request(submitTransactionURL, data)
+type getContractUTXOIDRequest struct {
+	TransactionID string `json:"tx_id"`
+}
 
-// 	submitedTransaction := new(submitedTransactionResponse)
-// 	if err := json.Unmarshal(body, submitedTransaction); err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	return submitedTransaction.Data.TxID
-// }
+type TransactionOutput struct {
+	TransactionOutputID string `json:"id"`
+	ControlProgram      string `json:"control_program"`
+}
 
-// type TransactionOutput struct {
-// 	TransactionOutputID string `json:"id"`
-// 	ControlProgram      string `json:"control_program"`
-// }
+type getContractUTXOIDResponse struct {
+	TransactionOutputs []TransactionOutput `json:"outputs"`
+}
 
-// type GotTransactionInfo struct {
-// 	TransactionOutputs []TransactionOutput `json:"outputs"`
-// }
+// getContractUTXOID get contract UTXO ID by transaction ID and contract control program.
+func getContractUTXOID(transactionID, controlProgram string) (string, error) {
+	payload, err := json.Marshal(getContractUTXOIDRequest{TransactionID: transactionID})
+	if err != nil {
+		return "", err
+	}
 
-// type getTransactionResponse struct {
-// 	Status string             `json:"status"`
-// 	Data   GotTransactionInfo `json:"data"`
-// }
+	res := new(getContractUTXOIDResponse)
+	if err := request(getTransactionURL, payload, res); err != nil {
+		return "", err
+	}
 
-// // GetContractUTXOID get contract UTXO ID by transaction ID and contract control program.
-// func GetContractUTXOID(transactionID, controlProgram string) (string, error) {
-// 	data := []byte(`{"tx_id":"` + transactionID + `"}`)
-// 	body := request(getTransactionURL, data)
+	for _, v := range res.TransactionOutputs {
+		if v.ControlProgram == controlProgram {
+			return v.TransactionOutputID, nil
+		}
+	}
 
-// 	getTransactionResponse := new(getTransactionResponse)
-// 	if err := json.Unmarshal(body, getTransactionResponse); err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	for _, v := range getTransactionResponse.Data.TransactionOutputs {
-// 		if v.ControlProgram == controlProgram {
-// 			return v.TransactionOutputID, nil
-// 		}
-// 	}
-
-// 	return "", errFailedGetContractUTXOID
-// }
+	return "", errFailedGetContractUTXOID
+}
 
 // // BuildUnlockContractTransaction build unlocked contract transaction.
 // func BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram string, amountRequested, amountLocked, txFee uint64) []byte {
@@ -250,15 +240,14 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 		panic(err)
 	}
 	fmt.Println("--> txID:", txID)
-	return ""
 
-	// // get contract output ID
-	// contractUTXOID, err := GetContractUTXOID(txID, contractInfo.Program)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// fmt.Println("--> contractUTXOID:", contractUTXOID)
-	// return contractUTXOID
+	// get contract output ID
+	contractUTXOID, err := getContractUTXOID(txID, contractControlProgram)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> contractUTXOID:", contractUTXOID)
+	return contractUTXOID
 }
 
 // // CallContract call contract.
