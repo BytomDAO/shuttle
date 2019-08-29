@@ -16,7 +16,7 @@ type compileLockContractResponse struct {
 	Program string `json:"program"`
 }
 
-// CompileLockContract return contract control program
+// compileLockContract return contract control program
 func compileLockContract(assetRequested, seller, cancelKey string, amountRequested uint64) (string, error) {
 	payload := []byte(`{
 		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
@@ -42,7 +42,7 @@ func compileLockContract(assetRequested, seller, cancelKey string, amountRequest
 	return res.Program, nil
 }
 
-// BuildLockTransaction build locked contract transaction.
+// buildLockTransaction build locked contract transaction.
 func buildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) (interface{}, error) {
 	payload := []byte(`{
 		"actions":[
@@ -88,11 +88,11 @@ type signTransactionResponse struct {
 	Tx Transaction `json:"transaction"`
 }
 
-// SignTransaction sign built contract transaction.
+// signTransaction sign built contract transaction.
 func signTransaction(password string, transaction interface{}) (string, error) {
 	payload, err := json.Marshal(signTransactionRequest{Password: password, Transaction: transaction})
 	if err != nil {
-		return "", errMarshal
+		return "", err
 	}
 
 	res := new(signTransactionResponse)
@@ -103,28 +103,27 @@ func signTransaction(password string, transaction interface{}) (string, error) {
 	return res.Tx.RawTransaction, nil
 }
 
-// // SignTransaction sign built contract transaction.
-// func SignTransaction(password, transaction string) string {
-// 	payload := []byte(`{
-// 		"password": "` + password + `",
-// 		"transaction` + transaction[25:])
-// 	body := request(signTransactionURL, data)
+type submitTransactionRequest struct {
+	RawTransaction string `json:"raw_transaction"`
+}
 
-// 	signedTransaction := new(signedTransactionResponse)
-// 	if err := json.Unmarshal(body, signedTransaction); err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	return signedTransaction.Data.SignedTransaction.RawTransaction
-// }
+type submitTransactionResponse struct {
+	TransactionID string `json:"tx_id"`
+}
 
-// type TransactionID struct {
-// 	TxID string `json:"tx_id"`
-// }
+// submitTransaction submit raw singed contract transaction.
+func submitTransaction(rawTransaction string) (string, error) {
+	payload, err := json.Marshal(submitTransactionRequest{RawTransaction: rawTransaction})
+	if err != nil {
+		return "", err
+	}
+	res := new(submitTransactionResponse)
+	if err := request(submitTransactionURL, payload, res); err != nil {
+		return "", err
+	}
 
-// type submitedTransactionResponse struct {
-// 	Status string        `json:"status"`
-// 	Data   TransactionID `json:"data"`
-// }
+	return res.TransactionID, nil
+}
 
 // // SubmitTransaction submit raw singed contract transaction.
 // func SubmitTransaction(rawTransaction string) string {
@@ -244,11 +243,14 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 		panic(err)
 	}
 	fmt.Println("--> signedTransaction:", signedTransaction)
-	return ""
 
-	// // submit signed transaction
-	// txID := SubmitTransaction(signedTransaction)
-	// fmt.Println("--> txID:", txID)
+	// submit signed transaction
+	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> txID:", txID)
+	return ""
 
 	// // get contract output ID
 	// contractUTXOID, err := GetContractUTXOID(txID, contractInfo.Program)
