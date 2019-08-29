@@ -1,6 +1,7 @@
 package swap
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 var (
 	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
+	errMarshal                 = errors.New("Failed to marshal")
 )
 
 // type ContractInfo struct {
@@ -18,7 +20,8 @@ type compileLockContractResponse struct {
 	Program string `json:"program"`
 }
 
-func CompileLockContract(assetRequested, seller, cancelKey string, amountRequested uint64) (string, error) {
+// CompileLockContract return contract control program
+func compileLockContract(assetRequested, seller, cancelKey string, amountRequested uint64) (string, error) {
 	payload := []byte(`{
 		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
 		"args":[
@@ -43,35 +46,38 @@ func CompileLockContract(assetRequested, seller, cancelKey string, amountRequest
 	return res.Program, nil
 }
 
-// // BuildLockTransaction build locked contract transaction.
-// func BuildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) []byte {
-// 	data := []byte(`{
-// 		"actions":[
-// 			{
-// 				"account_id":"` + accountIDLocked + `",
-// 				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-// 				"asset_id":"` + assetIDLocked + `",
-// 				"type":"spend_account"
-// 			},
-// 			{
-// 				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-// 				"asset_id":"` + assetIDLocked + `",
-// 				"control_program":"` + contractControlProgram + `",
-// 				"type":"control_program"
-// 			},
-// 			{
-// 				"account_id":"` + accountIDLocked + `",
-// 				"amount":` + strconv.FormatUint(txFee, 10) + `,
-// 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-// 				"type":"spend_account"
-// 			}
-// 		],
-// 		"ttl":0,
-// 		"base_transaction":null
-// 	}`)
-// 	body := request(buildTransactionURL, data)
-// 	return body
-// }
+// BuildLockTransaction build locked contract transaction.
+func buildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) (interface{}, error) {
+	payload := []byte(`{
+		"actions":[
+			{
+				"account_id":"` + accountIDLocked + `",
+				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
+				"asset_id":"` + assetIDLocked + `",
+				"type":"spend_account"
+			},
+			{
+				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
+				"asset_id":"` + assetIDLocked + `",
+				"control_program":"` + contractControlProgram + `",
+				"type":"control_program"
+			},
+			{
+				"account_id":"` + accountIDLocked + `",
+				"amount":` + strconv.FormatUint(txFee, 10) + `,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"type":"spend_account"
+			}
+		],
+		"ttl":0,
+		"base_transaction":null
+	}`)
+	res := new(interface{})
+	if err := request(buildTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+	return res, nil
+}
 
 // type SignedTransaction struct {
 // 	RawTransaction string `json:"raw_transaction"`
@@ -86,9 +92,37 @@ func CompileLockContract(assetRequested, seller, cancelKey string, amountRequest
 // 	Data   TransactionData `json:"data"`
 // }
 
+type signTransactionRequest struct {
+	Password    string      `json:"password"`
+	Transaction interface{} `json:"transaction"`
+}
+
+type Transaction struct {
+	RawTransaction string `json:"raw_transaction"`
+}
+
+type signTransactionResponse struct {
+	Tx Transaction `json:"transaction"`
+}
+
+// SignTransaction sign built contract transaction.
+func signTransaction(password string, transaction interface{}) (string, error) {
+	payload, err := json.Marshal(signTransactionRequest{Password: password, Transaction: transaction})
+	if err != nil {
+		return "", errMarshal
+	}
+
+	res := new(signTransactionResponse)
+	if err := request(signTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+
+	return res.Tx.RawTransaction, nil
+}
+
 // // SignTransaction sign built contract transaction.
 // func SignTransaction(password, transaction string) string {
-// 	data := []byte(`{
+// 	payload := []byte(`{
 // 		"password": "` + password + `",
 // 		"transaction` + transaction[25:])
 // 	body := request(signTransactionURL, data)
@@ -208,20 +242,26 @@ func CompileLockContract(assetRequested, seller, cancelKey string, amountRequest
 // DeployContract deploy contract.
 func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) string {
 	// compile locked contract
-	contractInfo, err := CompileLockContract(assetRequested, seller, cancelKey, amountRequested)
+	contractControlProgram, err := compileLockContract(assetRequested, seller, cancelKey, amountRequested)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("--> contract info:", contractInfo)
+	fmt.Println("--> contractControlProgram:", contractControlProgram)
+
+	// build locked contract
+	txLocked, err := buildLockTransaction(accountIDLocked, assetLocked, contractControlProgram, amountLocked, txFee)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> txLocked:", txLocked)
+
+	// sign locked contract transaction
+	signedTransaction, err := signTransaction(accountPasswordLocked, txLocked)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> signedTransaction:", signedTransaction)
 	return ""
-
-	// // build locked contract
-	// txLocked := BuildLockTransaction(accountIDLocked, assetLocked, contractInfo.Program, amountLocked, txFee)
-	// fmt.Println("--> txLocked:", string(txLocked))
-
-	// // sign locked contract transaction
-	// signedTransaction := SignTransaction(accountPasswordLocked, string(txLocked))
-	// fmt.Println("--> signedTransaction:", signedTransaction)
 
 	// // submit signed transaction
 	// txID := SubmitTransaction(signedTransaction)
