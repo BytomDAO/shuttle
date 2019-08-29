@@ -12,10 +12,6 @@ var (
 	errMarshal                 = errors.New("Failed to marshal")
 )
 
-// type ContractInfo struct {
-// 	Program string `json:"program"`
-// }
-
 type compileLockContractResponse struct {
 	Program string `json:"program"`
 }
@@ -78,19 +74,6 @@ func buildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram
 	}
 	return res, nil
 }
-
-// type SignedTransaction struct {
-// 	RawTransaction string `json:"raw_transaction"`
-// }
-
-// type TransactionData struct {
-// 	SignedTransaction SignedTransaction `json:"transaction"`
-// }
-
-// type signedTransactionResponse struct {
-// 	Status string          `json:"status"`
-// 	Data   TransactionData `json:"data"`
-// }
 
 type signTransactionRequest struct {
 	Password    string      `json:"password"`
