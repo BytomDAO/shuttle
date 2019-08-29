@@ -29,12 +29,12 @@ func main() {
 	amountLocked := uint64(20000000000)                                                  // amountLocked represents locked asset amount
 	txFee := uint64(50000000)                                                            // txFee represents transaction fee
 
-	// accountIDUnlocked := "10CKAD3000A02"                                 // accountIDUnlocked represents account ID which create unlocked contract
-	// buyerContolProgram := "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
-	// accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
+	accountIDUnlocked := "10CKAD3000A02"                                 // accountIDUnlocked represents account ID which create unlocked contract
+	buyerContolProgram := "00140fdee108543d305308097019ceb5aec3da60ec66" // buyerContolProgram represents buyer control program
+	accountPasswordUnlocked := "12345"                                   // accountPasswordUnlocked represents account password which create locked contract
 
 	contractUTXOID := swap.DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetIDLocked, accountPasswordLocked, amountRequested, amountLocked, txFee)
 	fmt.Println(contractUTXOID)
-	// txID := swap.CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked, amountRequested, amountLocked, txFee)
-	// fmt.Println("--> txID:", txID)
+	txID := swap.CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked, amountRequested, amountLocked, txFee)
+	fmt.Println("--> txID:", txID)
 }

@@ -160,56 +160,59 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 	return "", errFailedGetContractUTXOID
 }
 
-// // BuildUnlockContractTransaction build unlocked contract transaction.
-// func BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram string, amountRequested, amountLocked, txFee uint64) []byte {
-// 	data := []byte(`{
-// 		"actions":[
-// 			{
-// 				"type":"spend_account_unspent_output",
-// 				"arguments":[
-// 					{
-// 						"type":"integer",
-// 						"raw_data":{
-// 							"value":0
-// 						}
-// 					}
-// 				],
-// 				"use_unconfirmed":true,
-// 				"output_id":"` + contractUTXOID + `"
-// 			},
-// 			{
-// 				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
-// 				"asset_id":"` + assetRequested + `",
-// 				"control_program":"` + seller + `",
-// 				"type":"control_program"
-// 			},
-// 			{
-// 				"account_id":"` + accountIDUnlocked + `",
-// 				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
-// 				"asset_id":"` + assetRequested + `",
-// 				"use_unconfirmed":true,
-// 				"type":"spend_account"
-// 			},
-// 			{
-// 				"account_id":"` + accountIDUnlocked + `",
-// 				"amount":` + strconv.FormatUint(txFee, 10) + `,
-// 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-// 				"use_unconfirmed":true,
-// 				"type":"spend_account"
-// 			},
-// 			{
-// 				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-// 				"asset_id":"` + assetIDLocked + `",
-// 				"control_program":"` + buyerContolProgram + `",
-// 				"type":"control_program"
-// 			}
-// 		],
-// 		"ttl":0,
-// 		"base_transaction":null
-// 	}`)
-// 	body := request(buildTransactionURL, data)
-// 	return body
-// }
+// buildUnlockContractTransaction build unlocked contract transaction.
+func buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram string, amountRequested, amountLocked, txFee uint64) (interface{}, error) {
+	payload := []byte(`{
+		"actions":[
+			{
+				"type":"spend_account_unspent_output",
+				"arguments":[
+					{
+						"type":"integer",
+						"raw_data":{
+							"value":0
+						}
+					}
+				],
+				"use_unconfirmed":true,
+				"output_id":"` + contractUTXOID + `"
+			},
+			{
+				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
+				"asset_id":"` + assetRequested + `",
+				"control_program":"` + seller + `",
+				"type":"control_program"
+			},
+			{
+				"account_id":"` + accountIDUnlocked + `",
+				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
+				"asset_id":"` + assetRequested + `",
+				"use_unconfirmed":true,
+				"type":"spend_account"
+			},
+			{
+				"account_id":"` + accountIDUnlocked + `",
+				"amount":` + strconv.FormatUint(txFee, 10) + `,
+				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+				"use_unconfirmed":true,
+				"type":"spend_account"
+			},
+			{
+				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
+				"asset_id":"` + assetIDLocked + `",
+				"control_program":"` + buyerContolProgram + `",
+				"type":"control_program"
+			}
+		],
+		"ttl":0,
+		"base_transaction":null
+	}`)
+	res := new(interface{})
+	if err := request(buildTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+	return res, nil
+}
 
 // DeployContract deploy contract.
 func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) string {
@@ -250,18 +253,22 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 	return contractUTXOID
 }
 
-// // CallContract call contract.
-// func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) string {
-// 	// build unlocked contract transaction
-// 	txUnlocked := BuildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
-// 	fmt.Println("--> txUnlocked:", string(txUnlocked))
+// CallContract call contract.
+func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) string {
+	// build unlocked contract transaction
+	txUnlocked, err := buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--> txUnlocked:", txUnlocked)
+	return ""
 
-// 	// sign unlocked contract transaction
-// 	signedTransaction := SignTransaction(accountPasswordUnlocked, string(txUnlocked))
-// 	fmt.Println("--> signedTransaction:", signedTransaction)
+	// // sign unlocked contract transaction
+	// signedTransaction := SignTransaction(accountPasswordUnlocked, string(txUnlocked))
+	// fmt.Println("--> signedTransaction:", signedTransaction)
 
-// 	// submit signed unlocked contract transaction
-// 	txID := SubmitTransaction(signedTransaction)
-// 	fmt.Println("--> txID:", txID)
-// 	return txID
-// }
+	// // submit signed unlocked contract transaction
+	// txID := SubmitTransaction(signedTransaction)
+	// fmt.Println("--> txID:", txID)
+	// return txID
+}
