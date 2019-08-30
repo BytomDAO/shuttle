@@ -11,26 +11,44 @@ var (
 	errMarshal                 = errors.New("Failed to marshal")
 )
 
+type AccountInfo struct {
+	AccountID string
+	Password  string
+	Receiver  string
+	TxFee     uint64
+}
+
+type AssetAmount struct {
+	Asset  string
+	Amount uint64
+}
+
+type ContractArgs struct {
+	AssetAmount
+	Seller    string
+	CancelKey string
+}
+
 type compileLockContractResponse struct {
 	Program string `json:"program"`
 }
 
 // compileLockContract return contract control program
-func compileLockContract(assetRequested, seller, cancelKey string, amountRequested uint64) (string, error) {
+func compileLockContract(contractArgs ContractArgs) (string, error) {
 	payload := []byte(`{
 		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
 		"args":[
 			{
-				"string":"` + assetRequested + `"
+				"string":"` + contractArgs.Asset + `"
 			},
 			{
-				"integer":` + strconv.FormatUint(amountRequested, 10) + `
+				"integer":` + strconv.FormatUint(contractArgs.Amount, 10) + `
 			},
 			{
-				"string":"` + seller + `"
+				"string":"` + contractArgs.Seller + `"
 			},
 			{
-				"string":"` + cancelKey + `"
+				"string":"` + contractArgs.CancelKey + `"
 			}
 		]
 	}`)
@@ -42,24 +60,24 @@ func compileLockContract(assetRequested, seller, cancelKey string, amountRequest
 }
 
 // buildLockTransaction build locked contract transaction.
-func buildLockTransaction(accountIDLocked, assetIDLocked, contractControlProgram string, amountLocked, txFee uint64) (interface{}, error) {
+func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(`{
 		"actions":[
 			{
-				"account_id":"` + accountIDLocked + `",
-				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-				"asset_id":"` + assetIDLocked + `",
+				"account_id":"` + accountInfo.AccountID + `",
+				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
+				"asset_id":"` + contractValue.Asset + `",
 				"type":"spend_account"
 			},
 			{
-				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-				"asset_id":"` + assetIDLocked + `",
+				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
+				"asset_id":"` + contractValue.Asset + `",
 				"control_program":"` + contractControlProgram + `",
 				"type":"control_program"
 			},
 			{
-				"account_id":"` + accountIDLocked + `",
-				"amount":` + strconv.FormatUint(txFee, 10) + `,
+				"account_id":"` + accountInfo.AccountID + `",
+				"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 				"type":"spend_account"
 			}
@@ -160,7 +178,7 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 }
 
 // buildUnlockContractTransaction build unlocked contract transaction.
-func buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram string, amountRequested, amountLocked, txFee uint64) (interface{}, error) {
+func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
 	payload := []byte(`{
 		"actions":[
 			{
@@ -177,29 +195,29 @@ func buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, a
 				"output_id":"` + contractUTXOID + `"
 			},
 			{
-				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
-				"asset_id":"` + assetRequested + `",
-				"control_program":"` + seller + `",
+				"amount":` + strconv.FormatUint(contractArgs.Amount, 10) + `,
+				"asset_id":"` + contractArgs.Asset + `",
+				"control_program":"` + contractArgs.Seller + `",
 				"type":"control_program"
 			},
 			{
-				"account_id":"` + accountIDUnlocked + `",
-				"amount":` + strconv.FormatUint(amountRequested, 10) + `,
-				"asset_id":"` + assetRequested + `",
+				"account_id":"` + accountInfo.AccountID + `",
+				"amount":` + strconv.FormatUint(contractArgs.Amount, 10) + `,
+				"asset_id":"` + contractArgs.Asset + `",
 				"use_unconfirmed":true,
 				"type":"spend_account"
 			},
 			{
-				"account_id":"` + accountIDUnlocked + `",
-				"amount":` + strconv.FormatUint(txFee, 10) + `,
+				"account_id":"` + accountInfo.AccountID + `",
+				"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
 				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 				"use_unconfirmed":true,
 				"type":"spend_account"
 			},
 			{
-				"amount":` + strconv.FormatUint(amountLocked, 10) + `,
-				"asset_id":"` + assetIDLocked + `",
-				"control_program":"` + buyerContolProgram + `",
+				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
+				"asset_id":"` + contractValue.Asset + `",
+				"control_program":"` + accountInfo.Receiver + `",
 				"type":"control_program"
 			}
 		],
@@ -214,21 +232,21 @@ func buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, a
 }
 
 // DeployContract deploy contract.
-func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLocked, accountPasswordLocked string, amountRequested, amountLocked, txFee uint64) (string, error) {
+func DeployContract(accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
 	// compile locked contract
-	contractControlProgram, err := compileLockContract(assetRequested, seller, cancelKey, amountRequested)
+	contractControlProgram, err := compileLockContract(contractArgs)
 	if err != nil {
 		return "", err
 	}
 
 	// build locked contract
-	txLocked, err := buildLockTransaction(accountIDLocked, assetLocked, contractControlProgram, amountLocked, txFee)
+	txLocked, err := buildLockTransaction(accountInfo, contractValue, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// sign locked contract transaction
-	signedTransaction, err := signTransaction(accountPasswordLocked, txLocked)
+	signedTransaction, err := signTransaction(accountInfo.Password, txLocked)
 	if err != nil {
 		return "", err
 	}
@@ -248,15 +266,15 @@ func DeployContract(assetRequested, seller, cancelKey, accountIDLocked, assetLoc
 }
 
 // CallContract call contract.
-func CallContract(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, accountPasswordUnlocked string, amountRequested, amountLocked, txFee uint64) (string, error) {
+func CallContract(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
 	// build unlocked contract transaction
-	txUnlocked, err := buildUnlockContractTransaction(accountIDUnlocked, contractUTXOID, seller, assetIDLocked, assetRequested, buyerContolProgram, amountRequested, amountLocked, txFee)
+	txUnlocked, err := buildUnlockContractTransaction(accountInfo, contractUTXOID, contractArgs, contractValue)
 	if err != nil {
 		return "", err
 	}
 
 	// sign unlocked contract transaction
-	signedTransaction, err := signTransaction(accountPasswordUnlocked, txUnlocked)
+	signedTransaction, err := signTransaction(accountInfo.Password, txUnlocked)
 	if err != nil {
 		return "", err
 	}
