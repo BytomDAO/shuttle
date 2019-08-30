@@ -24,25 +24,6 @@ var (
 	listUnspentOutputsURL = localURL + "list-unspent-outputs"
 )
 
-// func request(URL string, data []byte) []byte {
-// 	req, err := http.NewRequest("POST", URL, bytes.NewBuffer(data))
-// 	req.Header.Set("Content-Type", "application/json")
-
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer resp.Body.Close()
-
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	// fmt.Println("response Body:", string(body))
-// 	return body
-// }
-
 type response struct {
 	Status    string          `json:"status"`
 	Data      json.RawMessage `json:"data"`
