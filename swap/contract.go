@@ -1,9 +1,11 @@
 package swap
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -229,6 +231,75 @@ func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID stri
 		return "", err
 	}
 	return res, nil
+}
+
+type listUnspentOutputsResponse struct {
+	AssetID     string `json:"asset_id"`
+	AssetAmount uint64 `json:"amount"`
+	Program     string `json:"program"`
+}
+
+func listUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
+	payload := []byte(`{
+		"id": "` + contractUTXOID + `",
+		"smart_contract": true
+	}`)
+	res := new(listUnspentOutputsResponse)
+	if err := request(listUnspentOutputsURL, payload, res); err != nil {
+		return "", nil, err
+	}
+
+	contractLockedValue := new(AssetAmount)
+	contractLockedValue.Asset = res.AssetID
+	contractLockedValue.Amount = res.AssetAmount
+
+	return res.Program, contractLockedValue, nil
+}
+
+type decodeProgramResponse struct {
+	Instructions string `json:"instructions"`
+}
+
+func decodeProgram(program string) (*ContractArgs, error) {
+	payload := []byte(`{
+		"program": "` + program + `"
+	}`)
+	res := new(decodeProgramResponse)
+	if err := request(decodeProgramURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	instructions := strings.Fields(res.Instructions)
+	contractArgs := new(ContractArgs)
+	contractArgs.CancelKey = instructions[1]
+	contractArgs.Seller = instructions[3]
+	contractArgs.AssetAmount.Asset = instructions[7]
+
+	amount, err := parseUint64(instructions[5])
+	if err != nil {
+		return nil, err
+	}
+
+	contractArgs.AssetAmount.Amount = amount
+	return contractArgs, nil
+}
+
+func parseUint64(s string) (uint64, error) {
+	data, err := hex.DecodeString(s)
+	if err != nil {
+		return 0, err
+	}
+
+	for i := 0; i < len(data)/2; i++ {
+		data[i], data[len(data)-1-i] = data[len(data)-1-i], data[i]
+	}
+	s = hex.EncodeToString(data)
+	num, err := strconv.ParseUint(s, 16, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // DeployContract deploy contract.
