@@ -11,6 +11,7 @@ import (
 var (
 	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
 	errMarshal                 = errors.New("Failed to marshal")
+	errListUnspentOutputs      = errors.New("Failed to list unspent outputs")
 )
 
 type AccountInfo struct {
@@ -239,28 +240,30 @@ type listUnspentOutputsResponse struct {
 	Program     string `json:"program"`
 }
 
-func listUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
+func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 	payload := []byte(`{
 		"id": "` + contractUTXOID + `",
 		"smart_contract": true
 	}`)
-	res := new(listUnspentOutputsResponse)
-	if err := request(listUnspentOutputsURL, payload, res); err != nil {
+	var res []listUnspentOutputsResponse
+	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
 	}
 
 	contractLockedValue := new(AssetAmount)
-	contractLockedValue.Asset = res.AssetID
-	contractLockedValue.Amount = res.AssetAmount
-
-	return res.Program, contractLockedValue, nil
+	if len(res) != 0 {
+		contractLockedValue.Asset = res[0].AssetID
+		contractLockedValue.Amount = res[0].AssetAmount
+		return res[0].Program, contractLockedValue, nil
+	}
+	return "", nil, errListUnspentOutputs
 }
 
 type decodeProgramResponse struct {
 	Instructions string `json:"instructions"`
 }
 
-func decodeProgram(program string) (*ContractArgs, error) {
+func DecodeProgram(program string) (*ContractArgs, error) {
 	payload := []byte(`{
 		"program": "` + program + `"
 	}`)

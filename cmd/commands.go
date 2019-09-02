@@ -97,7 +97,7 @@ var deployCmd = &cobra.Command{
 }
 
 var callCmd = &cobra.Command{
-	Use:   "call <accountID> <password> <buyer-program> <contractUTXOID> [contract flags(paramenters and locked value)] [txFee flag]",
+	Use:   "call <accountID> <password> <buyer-program> <contractUTXOID> [txFee flag]",
 	Short: "call tradeoff contract for asset swapping",
 	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -118,28 +118,29 @@ var callCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		contractArgs := swap.ContractArgs{
-			AssetAmount: swap.AssetAmount{
-				Asset:  assetRequested,
-				Amount: amountRequested,
-			},
-			Seller: seller,
-		}
-		if len(contractArgs.Asset) == 0 || contractArgs.Amount == uint64(0) || len(contractArgs.Seller) == 0 {
-			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+		program, contractValue, err := swap.ListUnspentOutputs(contractUTXOID)
+		if err != nil {
+			fmt.Println("list unspent outputs err:", err)
 			os.Exit(0)
 		}
 
-		contractValue := swap.AssetAmount{
-			Asset:  assetLocked,
-			Amount: amountLocked,
-		}
 		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
 			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
 			os.Exit(0)
 		}
 
-		txID, err := swap.CallContract(accountInfo, contractUTXOID, contractArgs, contractValue)
+		contractArgs, err := swap.DecodeProgram(program)
+		if err != nil {
+			fmt.Println("decode program err:", err)
+			os.Exit(0)
+		}
+
+		if len(contractArgs.Asset) == 0 || contractArgs.Amount == uint64(0) || len(contractArgs.Seller) == 0 {
+			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+			os.Exit(0)
+		}
+
+		txID, err := swap.CallContract(accountInfo, contractUTXOID, *contractArgs, *contractValue)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)
