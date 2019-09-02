@@ -243,6 +243,7 @@ type listUnspentOutputsResponse struct {
 func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 	payload := []byte(`{
 		"id": "` + contractUTXOID + `",
+		"unconfirmed": true,
 		"smart_contract": true
 	}`)
 	var res []listUnspentOutputsResponse
