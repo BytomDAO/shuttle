@@ -62,7 +62,8 @@ func compileLockContract(contractArgs ContractArgs) (string, error) {
 		contractArgs.Asset,
 		strconv.FormatUint(contractArgs.Amount, 10),
 		contractArgs.Seller,
-		contractArgs.CancelKey))
+		contractArgs.CancelKey,
+	))
 	res := new(compileLockContractResponse)
 	if err := request(compileURL, payload, res); err != nil {
 		return "", err
@@ -107,7 +108,8 @@ func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, co
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset, contractControlProgram,
 		accountInfo.AccountID,
-		strconv.FormatUint(accountInfo.TxFee, 10)))
+		strconv.FormatUint(accountInfo.TxFee, 10),
+	))
 	res := new(interface{})
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return "", err
@@ -200,53 +202,69 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 	return "", errFailedGetContractUTXOID
 }
 
+var buildUnlockContractTransactionPayload = `{
+	"actions":[
+		{
+			"type":"spend_account_unspent_output",
+			"arguments":[
+				{
+					"type":"integer",
+					"raw_data":{
+						"value":0
+					}
+				}
+			],
+			"use_unconfirmed":true,
+			"output_id":"%s"
+		},
+		{
+			"amount":%s,
+			"asset_id":"%s",
+			"control_program":"%s",
+			"type":"control_program"
+		},
+		{
+			"account_id":"%s",
+			"amount":%s,
+			"asset_id":"%s",
+			"use_unconfirmed":true,
+			"type":"spend_account"
+		},
+		{
+			"account_id":"%s",
+			"amount":%s,
+			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"use_unconfirmed":true,
+			"type":"spend_account"
+		},
+		{
+			"amount":%s,
+			"asset_id":"%s",
+			"control_program":"%s",
+			"type":"control_program"
+		}
+	],
+	"ttl":0,
+	"base_transaction":null
+}`
+
 // buildUnlockContractTransaction build unlocked contract transaction.
 func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
-	payload := []byte(`{
-		"actions":[
-			{
-				"type":"spend_account_unspent_output",
-				"arguments":[
-					{
-						"type":"integer",
-						"raw_data":{
-							"value":0
-						}
-					}
-				],
-				"use_unconfirmed":true,
-				"output_id":"` + contractUTXOID + `"
-			},
-			{
-				"amount":` + strconv.FormatUint(contractArgs.Amount, 10) + `,
-				"asset_id":"` + contractArgs.Asset + `",
-				"control_program":"` + contractArgs.Seller + `",
-				"type":"control_program"
-			},
-			{
-				"account_id":"` + accountInfo.AccountID + `",
-				"amount":` + strconv.FormatUint(contractArgs.Amount, 10) + `,
-				"asset_id":"` + contractArgs.Asset + `",
-				"use_unconfirmed":true,
-				"type":"spend_account"
-			},
-			{
-				"account_id":"` + accountInfo.AccountID + `",
-				"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
-				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-				"use_unconfirmed":true,
-				"type":"spend_account"
-			},
-			{
-				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
-				"asset_id":"` + contractValue.Asset + `",
-				"control_program":"` + accountInfo.Receiver + `",
-				"type":"control_program"
-			}
-		],
-		"ttl":0,
-		"base_transaction":null
-	}`)
+	payload := []byte(fmt.Sprintf(
+		buildUnlockContractTransactionPayload,
+		contractUTXOID,
+		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Asset,
+		contractArgs.Seller,
+		accountInfo.AccountID,
+		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Asset,
+		accountInfo.AccountID,
+		strconv.FormatUint(accountInfo.TxFee, 10),
+		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Asset,
+		accountInfo.Receiver,
+	))
 	res := new(interface{})
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return "", err
