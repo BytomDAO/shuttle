@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -36,25 +37,32 @@ type compileLockContractResponse struct {
 	Program string `json:"program"`
 }
 
+var compileLockContractPayload = `{
+	"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
+	"args":[
+		{
+			"string":"%s"
+		},
+		{
+			"integer":%s
+		},
+		{
+			"string":"%s"
+		},
+		{
+			"string":"%s"
+		}
+	]
+}`
+
 // compileLockContract return contract control program
 func compileLockContract(contractArgs ContractArgs) (string, error) {
-	payload := []byte(`{
-		"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
-		"args":[
-			{
-				"string":"` + contractArgs.Asset + `"
-			},
-			{
-				"integer":` + strconv.FormatUint(contractArgs.Amount, 10) + `
-			},
-			{
-				"string":"` + contractArgs.Seller + `"
-			},
-			{
-				"string":"` + contractArgs.CancelKey + `"
-			}
-		]
-	}`)
+	payload := []byte(fmt.Sprintf(
+		compileLockContractPayload,
+		contractArgs.Asset,
+		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Seller,
+		contractArgs.CancelKey))
 	res := new(compileLockContractResponse)
 	if err := request(compileURL, payload, res); err != nil {
 		return "", err
@@ -62,32 +70,66 @@ func compileLockContract(contractArgs ContractArgs) (string, error) {
 	return res.Program, nil
 }
 
+var buildLockTransactionPayload = `{
+	"actions":[
+		{
+			"account_id":"%s",
+			"amount":%s,
+			"asset_id":"%s",
+			"type":"spend_account"
+		},
+		{
+			"amount":%s,
+			"asset_id":"%s",
+			"control_program":"%s",
+			"type":"control_program"
+		},
+		{
+			"account_id":"%s",
+			"amount":%s,
+			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"type":"spend_account"
+		}
+	],
+	"ttl":0,
+	"base_transaction":null
+}`
+
 // buildLockTransaction build locked contract transaction.
 func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
-	payload := []byte(`{
-		"actions":[
-			{
-				"account_id":"` + accountInfo.AccountID + `",
-				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
-				"asset_id":"` + contractValue.Asset + `",
-				"type":"spend_account"
-			},
-			{
-				"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
-				"asset_id":"` + contractValue.Asset + `",
-				"control_program":"` + contractControlProgram + `",
-				"type":"control_program"
-			},
-			{
-				"account_id":"` + accountInfo.AccountID + `",
-				"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
-				"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-				"type":"spend_account"
-			}
-		],
-		"ttl":0,
-		"base_transaction":null
-	}`)
+	// payload := []byte(`{
+	// 	"actions":[
+	// 		{
+	// 			"account_id":"` + accountInfo.AccountID + `",
+	// 			"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
+	// 			"asset_id":"` + contractValue.Asset + `",
+	// 			"type":"spend_account"
+	// 		},
+	// 		{
+	// 			"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
+	// 			"asset_id":"` + contractValue.Asset + `",
+	// 			"control_program":"` + contractControlProgram + `",
+	// 			"type":"control_program"
+	// 		},
+	// 		{
+	// 			"account_id":"` + accountInfo.AccountID + `",
+	// 			"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
+	// 			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	// 			"type":"spend_account"
+	// 		}
+	// 	],
+	// 	"ttl":0,
+	// 	"base_transaction":null
+	// }`)
+	payload := []byte(fmt.Sprintf(
+		buildLockTransactionPayload,
+		accountInfo.AccountID,
+		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Asset,
+		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Asset, contractControlProgram,
+		accountInfo.AccountID,
+		strconv.FormatUint(accountInfo.TxFee, 10)))
 	res := new(interface{})
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return "", err
