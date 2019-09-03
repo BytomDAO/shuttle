@@ -76,6 +76,7 @@ var buildLockTransactionPayload = `{
 			"account_id":"%s",
 			"amount":%s,
 			"asset_id":"%s",
+			"use_unconfirmed":true,
 			"type":"spend_account"
 		},
 		{
@@ -88,6 +89,7 @@ var buildLockTransactionPayload = `{
 			"account_id":"%s",
 			"amount":%s,
 			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"use_unconfirmed":true,
 			"type":"spend_account"
 		}
 	],
@@ -97,30 +99,6 @@ var buildLockTransactionPayload = `{
 
 // buildLockTransaction build locked contract transaction.
 func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
-	// payload := []byte(`{
-	// 	"actions":[
-	// 		{
-	// 			"account_id":"` + accountInfo.AccountID + `",
-	// 			"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
-	// 			"asset_id":"` + contractValue.Asset + `",
-	// 			"type":"spend_account"
-	// 		},
-	// 		{
-	// 			"amount":` + strconv.FormatUint(contractValue.Amount, 10) + `,
-	// 			"asset_id":"` + contractValue.Asset + `",
-	// 			"control_program":"` + contractControlProgram + `",
-	// 			"type":"control_program"
-	// 		},
-	// 		{
-	// 			"account_id":"` + accountInfo.AccountID + `",
-	// 			"amount":` + strconv.FormatUint(accountInfo.TxFee, 10) + `,
-	// 			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-	// 			"type":"spend_account"
-	// 		}
-	// 	],
-	// 	"ttl":0,
-	// 	"base_transaction":null
-	// }`)
 	payload := []byte(fmt.Sprintf(
 		buildLockTransactionPayload,
 		accountInfo.AccountID,
