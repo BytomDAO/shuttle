@@ -278,12 +278,17 @@ type listUnspentOutputsResponse struct {
 	Program     string `json:"program"`
 }
 
+var listUnspentOutputsPayload = `{
+	"id": "%s",
+	"unconfirmed": true,
+	"smart_contract": true
+}`
+
 func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
-	payload := []byte(`{
-		"id": "` + contractUTXOID + `",
-		"unconfirmed": true,
-		"smart_contract": true
-	}`)
+	payload := []byte(fmt.Sprintf(
+		listUnspentOutputsPayload,
+		contractUTXOID,
+	))
 	var res []listUnspentOutputsResponse
 	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
