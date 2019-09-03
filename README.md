@@ -62,8 +62,8 @@ You should create several accounts and issue your asset for testing, more detail
 
 ```shell
 $ cd $GOPATH/src/github.com/btm-swap-tool/cmd
-$ ./cmd -assetRequested=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -seller=00145dd7b82556226d563b6e7d573fe61d23bd461c1f -cancelKey=3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e -accountID=10CJPO1HG0A02 -assetIDLocked=bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a -password=12345 -amountRequested=1000000000 -amountLocked=20000000000 -txFee=50000000  deploy
---> contractUTXOID: be8cbdb71dcd337d199387aa972300ce674a2d225671fa1c4225983ae2b2b451
+$ ./cmd deploy 10CJPO1HG0A02 12345 --amountLocked 20000000000 --amountRequested 1000000000 --assetLocked bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a --assetRequested ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff --cancelKey 3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e --seller 00145dd7b82556226d563b6e7d573fe61d23bd461c1f --txFee 40000000
+--> contractUTXOID: ad1e72021352ade9e0fef7b1c52cc070bfcb1429f885a540f00f8b957e941b2d
 ```
 
 Then, wait about 2.5 minutes, and a new block will be mined, the contract will be confirmed.
@@ -71,8 +71,8 @@ Then, wait about 2.5 minutes, and a new block will be mined, the contract will b
 ### 3.5 Call contract
 
 ```shell
-$ ./cmd -accountID=10CKAD3000A02 -contractUTXOID=be8cbdb71dcd337d199387aa972300ce674a2d225671fa1c4225983ae2b2b451 -seller=00145dd7b82556226d563b6e7d573fe61d23bd461c1f -assetIDLocked=bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a -assetRequested=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff -buyerContolProgram=00140fdee108543d305308097019ceb5aec3da60ec66 -password=12345 -amountRequested=1000000000 -amountLocked=20000000000 -txFee=50000000 call
---> txID: f92d8ab0c5349d8bcd4a0dfb2a076c1417ef053e38f0e83e296bcd0490165c6d
+$ ./cmd call 10CKAD3000A02 12345 00140fdee108543d305308097019ceb5aec3da60ec66 ad1e72021352ade9e0fef7b1c52cc070bfcb1429f885a540f00f8b957e941b2d
+--> txID: 762d6912e126ac3937cee54db8898af09abc5633c8b78682fa0cc23d89a518a9
 ```
 
 When the transaction will be confirmed in a new block, the whole BTM swap is successful.
