@@ -7,6 +7,7 @@ import (
 
 type HTLCAccount struct {
 	AccountID string
+	Password  string
 	TxFee     uint64
 }
 
@@ -100,12 +101,36 @@ func buildLockHTLCContract(account HTLCAccount, contractValue AssetAmount, contr
 	return res, nil
 }
 
-// func DeployHTLCContract(contractArgs HTLCContractArgs) (string, error) {
-// 	// compile locked HTLC cotnract
-// 	HTLCContractControlProgram, err := compileLockHTLCContract(contractArgs)
-// 	if err != nil {
-// 		return "", err
-// 	}
+// DeployHTLCContract deploy HTLC contract.
+func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
+	// compile locked HTLC cotnract
+	HTLCContractControlProgram, err := compileLockHTLCContract(contractArgs)
+	if err != nil {
+		return "", err
+	}
 
-// 	return
-// }
+	// build locked HTLC contract
+	txLocked, err := buildLockHTLCContract(account, contractValue, HTLCContractControlProgram)
+	if err != nil {
+		return "", err
+	}
+
+	// sign locked HTLC contract transaction
+	signedTransaction, err := signTransaction(account.Password, txLocked)
+	if err != nil {
+		return "", err
+	}
+
+	// submit signed HTLC contract transaction
+	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		return "", err
+	}
+
+	// get HTLC contract output ID
+	contractUTXOID, err := getContractUTXOID(txID, HTLCContractControlProgram)
+	if err != nil {
+		return "", err
+	}
+	return contractUTXOID, nil
+}
