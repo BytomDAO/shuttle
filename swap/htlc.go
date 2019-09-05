@@ -1,13 +1,19 @@
 package swap
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+)
+
+var (
+	errFailedGetSignData = errors.New("Failed to get sign data")
 )
 
 type HTLCAccount struct {
 	AccountID string
 	Password  string
+	Receiver  string
 	TxFee     uint64
 }
 
@@ -55,7 +61,7 @@ func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
 	return res.Program, nil
 }
 
-var buildLockHTLCContractPayload = `{
+var buildLockHTLCContractTransactionPayload = `{
     "actions": [
         {
             "account_id": "%s",
@@ -82,9 +88,9 @@ var buildLockHTLCContractPayload = `{
     "base_transaction": null
 }`
 
-func buildLockHTLCContract(account HTLCAccount, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
+func buildLockHTLCContractTransaction(account HTLCAccount, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(
-		buildLockHTLCContractPayload,
+		buildLockHTLCContractTransactionPayload,
 		account.AccountID,
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
@@ -101,6 +107,80 @@ func buildLockHTLCContract(account HTLCAccount, contractValue AssetAmount, contr
 	return res, nil
 }
 
+var buildUnlockHTLCContractTransactionPayload = `{
+    "actions": [
+        {
+            "type": "spend_account_unspent_output",
+            "use_unconfirmed":true,
+            "arguments": [],
+            "output_id": "%s"
+        },
+        {
+            "account_id": "%s",
+            "amount": %s,
+            "asset_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "use_unconfirmed":true,
+            "type": "spend_account"
+        },
+        {
+            "amount": %s,
+            "asset_id": "%s",
+            "control_program": "%s",
+            "type": "control_program"
+        }
+    ],
+    "ttl": 0,
+    "base_transaction": null
+}`
+
+func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
+	payload := []byte(fmt.Sprintf(
+		buildUnlockHTLCContractTransactionPayload,
+		contractUTXOID,
+		account.AccountID,
+		strconv.FormatUint(account.TxFee, 10),
+		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Asset,
+		account.Receiver,
+	))
+	res := new(interface{})
+	if err := request(buildTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+	return res, nil
+}
+
+type TransactionInput struct {
+	ControlProgram string `json:"control_program"`
+	SignData       string `json:"sign_data"`
+}
+
+type decodeRawTransactionResponse struct {
+	TransactionInputs []TransactionInput `json:"inputs"`
+}
+
+var decodeRawTransactionPayload = `{
+	"raw_transaction":"%s"
+}`
+
+func decodeRawTransaction(rawTransaction, controlProgram string) (string, error) {
+	payload := []byte(fmt.Sprintf(
+		decodeRawTransactionPayload,
+		rawTransaction,
+	))
+	res := new(decodeRawTransactionResponse)
+	if err := request(decodeRawTransactionPayload, payload, res); err != nil {
+		return "", err
+	}
+
+	for _, v := range res.TransactionInputs {
+		if v.ControlProgram == controlProgram {
+			return v.SignData, nil
+		}
+	}
+	return "", errFailedGetSignData
+}
+
 // DeployHTLCContract deploy HTLC contract.
 func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
 	// compile locked HTLC cotnract
@@ -110,7 +190,7 @@ func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contract
 	}
 
 	// build locked HTLC contract
-	txLocked, err := buildLockHTLCContract(account, contractValue, HTLCContractControlProgram)
+	txLocked, err := buildLockHTLCContractTransaction(account, contractValue, HTLCContractControlProgram)
 	if err != nil {
 		return "", err
 	}
