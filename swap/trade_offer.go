@@ -106,7 +106,8 @@ func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, co
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
 		strconv.FormatUint(contractValue.Amount, 10),
-		contractValue.Asset, contractControlProgram,
+		contractValue.Asset,
+		contractControlProgram,
 		accountInfo.AccountID,
 		strconv.FormatUint(accountInfo.TxFee, 10),
 	))
