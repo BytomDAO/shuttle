@@ -141,7 +141,7 @@ var buildUnlockHTLCContractTransactionPayload = `{
     "base_transaction": null
 }`
 
-func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID string, contractArgs HTLCContractArgs, contractValue AssetAmount) (*buildUnlockHTLCContractTransactionResponse, error) {
+func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTransactionResponse, error) {
 	payload := []byte(fmt.Sprintf(
 		buildUnlockHTLCContractTransactionPayload,
 		contractUTXOID,
@@ -159,6 +159,7 @@ func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID stri
 }
 
 type TransactionInput struct {
+	AssetID        string `json:"asset_id"`
 	ControlProgram string `json:"control_program"`
 	SignData       string `json:"sign_data"`
 }
@@ -171,22 +172,22 @@ var decodeRawTransactionPayload = `{
 	"raw_transaction":"%s"
 }`
 
-func decodeRawTransaction(rawTransaction, controlProgram string) (string, error) {
+func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (string, string, error) {
 	payload := []byte(fmt.Sprintf(
 		decodeRawTransactionPayload,
 		rawTransaction,
 	))
 	res := new(decodeRawTransactionResponse)
-	if err := request(decodeRawTransactionPayload, payload, res); err != nil {
-		return "", err
+	if err := request(decodeRawTransactionURL, payload, res); err != nil {
+		return "", "", err
 	}
 
 	for _, v := range res.TransactionInputs {
-		if v.ControlProgram == controlProgram {
-			return v.SignData, nil
+		if v.AssetID == contractValue.Asset {
+			return v.ControlProgram, v.SignData, nil
 		}
 	}
-	return "", errFailedGetSignData
+	return "", "", errFailedGetSignData
 }
 
 type signUnlockHTLCContractTransactionRequest struct {
@@ -222,11 +223,6 @@ var signUnlockHTLCContractTransactionPayload = `{
         "allow_additional_actions": false
     }
 }`
-
-// type WitnessComponent struct {
-// 	Type  string `json:"type"`
-// 	Value string `json:"value"`
-// }
 
 type SigningInstruction struct {
 	Position          uint64        `json:"position"`
@@ -295,7 +291,7 @@ func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contract
 // CallHTLCContract call HTLC contract.
 func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage, recipientSig string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
 	// build unlocked contract transaction
-	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractArgs, contractValue)
+	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
 	if err != nil {
 		return "", err
 	}
