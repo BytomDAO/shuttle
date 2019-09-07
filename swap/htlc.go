@@ -108,11 +108,16 @@ func buildLockHTLCContractTransaction(account HTLCAccount, contractValue AssetAm
 	return res, nil
 }
 
+// type SigningInstruction struct {
+// 	Position          uint64        `json:"position"`
+// 	WitnessComponents []interface{} `json:"witness_components"`
+// }
+
 type buildUnlockHTLCContractTransactionResponse struct {
-	RawTransaction         string               `json:"raw_transaction"`
-	SigningInstructions    []SigningInstruction `json:"signing_instructions"`
-	TxFee                  uint64               `json:"fee"`
-	AllowAdditionalActions bool                 `json:"allow_additional_actions"`
+	RawTransaction         string        `json:"raw_transaction"`
+	SigningInstructions    []interface{} `json:"signing_instructions"`
+	TxFee                  uint64        `json:"fee"`
+	AllowAdditionalActions bool          `json:"allow_additional_actions"`
 }
 
 var buildUnlockHTLCContractTransactionPayload = `{
@@ -224,12 +229,7 @@ var signUnlockHTLCContractTransactionPayload = `{
     }
 }`
 
-type SigningInstruction struct {
-	Position          uint64        `json:"position"`
-	WitnessComponents []interface{} `json:"witness_components"`
-}
-
-func signUnlockHTLCContractTransaction(account HTLCAccount, preimage, recipientSig string, buildTxResp buildUnlockHTLCContractTransactionResponse) (string, error) {
+func signUnlockHTLCContractTransaction(account HTLCAccount, preimage, recipientSig, rawTransaction string) (string, error) {
 	rawSigningInstruction, err := json.Marshal(buildTxResp.SigningInstructions[1])
 	if err != nil {
 		return "", err
@@ -240,7 +240,7 @@ func signUnlockHTLCContractTransaction(account HTLCAccount, preimage, recipientS
 	payload := []byte(fmt.Sprintf(
 		signUnlockHTLCContractTransactionPayload,
 		account.Password,
-		buildTxResp.RawTransaction,
+		rawTransaction,
 		preimage,
 		recipientSig,
 		string(rawSigningInstruction),
@@ -289,24 +289,34 @@ func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contract
 }
 
 // CallHTLCContract call HTLC contract.
-func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage, recipientSig string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
+func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage, recipientSig string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, string, string, error) {
 	// build unlocked contract transaction
 	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
-	// sign unlocked HTLC contract transaction
-	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
+	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
+	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
 	if err != nil {
-		return "", err
+		fmt.Println(err)
 	}
+	fmt.Println("contractControlProgram:", contractControlProgram)
+	fmt.Println("signData:", signData)
 
-	// submit signed HTLC contract transaction
-	txID, err := submitTransaction(signedTransaction)
-	if err != nil {
-		return "", err
-	}
+	return buildTxResp.RawTransaction, contractControlProgram, signData, nil
 
-	return txID, nil
+	// // sign unlocked HTLC contract transaction
+	// signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
+	// if err != nil {
+	// 	return "", "", err
+	// }
+
+	// // submit signed HTLC contract transaction
+	// txID, err := submitTransaction(signedTransaction)
+	// if err != nil {
+	// 	return "", "", err
+	// }
+
+	// return "", txID, nil
 }

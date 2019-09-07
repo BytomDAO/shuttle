@@ -40,15 +40,33 @@ func TestBuildUnlockHTLCContractTransaction(t *testing.T) {
 		Asset:  "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a",
 		Amount: uint64(20000000000),
 	}
-	buildUnlockResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
+	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("raw transaction:", buildUnlockResp.RawTransaction)
-	contractControlProgram, signData, err := decodeRawTransaction(buildUnlockResp.RawTransaction, contractValue)
+	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
+	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("contractControlProgram:", contractControlProgram)
 	fmt.Println("signData:", signData)
+
+	preimage := "68656c6c6f" // b'hello'.hex()
+	recipientSig := ""
+	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
+
+	
+}
+
+func TestSignUnlockHTLCContractTransaction(t *testing.T) {
+	account := HTLCAccount{
+		AccountID: "10CKAD3000A02",
+		Password:  "12345",
+		Receiver:  "00140fdee108543d305308097019ceb5aec3da60ec66",
+		TxFee:     uint64(100000000),
+	}
+	preimage := "68656c6c6f" // b'hello'.hex()
+	recipientSig := ""
+	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
 }
