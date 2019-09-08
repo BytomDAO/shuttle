@@ -214,6 +214,30 @@ func getRecipientPublicKey(contractControlProgram string) (string, error) {
 	return publicKey, nil
 }
 
+type AddressInfo struct {
+	AccountAlias   string `json:"account_alias"`
+	AccountID      string `json:"account_id"`
+	Address        string `json:"address"`
+	ControlProgram string `json:"control_program"`
+}
+
+var listAddressesPayload = `{
+	"account_id":"%s"
+}`
+
+func listAddresses(accountID string) ([]AddressInfo, error) {
+	payload := []byte(fmt.Sprintf(
+		listAddressesPayload,
+		accountID,
+	))
+	res := new([]AddressInfo)
+	if err := request(listAddressesURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	return *res, nil
+}
+
 type signUnlockHTLCContractTransactionRequest struct {
 	Password    string                                     `json:"password"`
 	Transaction buildUnlockHTLCContractTransactionResponse `json:"transaction"`

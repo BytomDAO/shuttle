@@ -63,3 +63,13 @@ func TestBuildUnlockHTLCContractTransaction(t *testing.T) {
 	// signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
 
 }
+
+func TestListAddresses(t *testing.T) {
+	accountID := "10CJPO1HG0A02"
+	addresses, err := listAddresses(accountID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(addresses[0].AccountAlias)
+	fmt.Println(addresses[0].Address)
+}
