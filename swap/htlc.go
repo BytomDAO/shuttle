@@ -2,6 +2,7 @@ package swap
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -165,11 +166,6 @@ func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID stri
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
 	}
-	// signingInst, err := json.Marshal(res.SigningInstructions[1])
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println("signingInst:", string(signingInst))
 	return res, nil
 }
 
@@ -384,35 +380,51 @@ func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contract
 	return contractUTXOID, nil
 }
 
-// // CallHTLCContract call HTLC contract.
-// func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage, recipientSig string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, string, string, error) {
-// 	// build unlocked contract transaction
-// 	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
-// 	if err != nil {
-// 		return "", "", "", err
-// 	}
+// CallHTLCContract call HTLC contract.
+func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
+	// build unlocked contract transaction
+	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
 
-// 	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
-// 	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	fmt.Println("contractControlProgram:", contractControlProgram)
-// 	fmt.Println("signData:", signData)
+	signingInst, err := json.Marshal(buildTxResp.SigningInstructions[1])
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("signingInst:", signingInst)
 
-// 	return buildTxResp.RawTransaction, contractControlProgram, signData, nil
+	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("contractControlProgram:", contractControlProgram)
+	fmt.Println("signData:", signData)
 
-// 	// // sign unlocked HTLC contract transaction
-// 	// signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, *buildTxResp)
-// 	// if err != nil {
-// 	// 	return "", "", err
-// 	// }
+	// get address by account ID and contract control program
+	address, err := getAddress(account.AccountID, contractControlProgram)
+	if err != nil {
+		return "", err
+	}
 
-// 	// // submit signed HTLC contract transaction
-// 	// txID, err := submitTransaction(signedTransaction)
-// 	// if err != nil {
-// 	// 	return "", "", err
-// 	// }
+	// sign raw transaction
+	recipientSig, err := signMessage(address, buildTxResp.RawTransaction, account.Password)
+	if err != nil {
+		return "", err
+	}
 
-// 	// return "", txID, nil
-// }
+	// sign raw transaction
+	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
+	if err != nil {
+		return "", err
+	}
+
+	// submit signed HTLC contract transaction
+	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
