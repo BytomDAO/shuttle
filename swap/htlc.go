@@ -1,7 +1,6 @@
 package swap
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -160,11 +159,11 @@ func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID stri
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
 	}
-	signingInst, err := json.Marshal(res.SigningInstructions[1])
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("signingInst:", string(signingInst))
+	// signingInst, err := json.Marshal(res.SigningInstructions[1])
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fmt.Println("signingInst:", string(signingInst))
 	return res, nil
 }
 

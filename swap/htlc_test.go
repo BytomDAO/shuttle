@@ -1,6 +1,7 @@
 package swap
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -44,7 +45,12 @@ func TestBuildUnlockHTLCContractTransaction(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	signingInst, err := json.Marshal(buildTxResp.SigningInstructions[1])
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
+	fmt.Println("signingInst:", string(signingInst))
 	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
 	if err != nil {
 		fmt.Println(err)
