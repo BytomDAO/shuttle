@@ -405,10 +405,11 @@ func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage string, cont
 	}
 
 	// sign raw transaction
-	recipientSig, err := signMessage(address, buildTxResp.RawTransaction, account.Password)
+	recipientSig, err := signMessage(address, signData, account.Password)
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("recipientSig:", recipientSig)
 
 	// sign raw transaction
 	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
