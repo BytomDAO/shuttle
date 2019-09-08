@@ -66,10 +66,14 @@ func TestBuildUnlockHTLCContractTransaction(t *testing.T) {
 
 func TestListAddresses(t *testing.T) {
 	accountID := "10CJPO1HG0A02"
-	addresses, err := listAddresses(accountID)
+	addressInfos, err := listAddresses(accountID)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(addresses[0].AccountAlias)
-	fmt.Println(addresses[0].Address)
+	controlProgram := "00145b0a81adc5c2d68a9967082a09c96e82d62aa058"
+	for _, addressInfo := range addressInfos {
+		if addressInfo.ControlProgram == controlProgram {
+			fmt.Println("address:", addressInfo.Address)
+		}
+	}
 }

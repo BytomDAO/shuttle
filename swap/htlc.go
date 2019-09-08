@@ -1,14 +1,19 @@
 package swap
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/bytom/crypto"
+	"github.com/bytom/protocol/vm/vmutil"
 )
 
 var (
 	errFailedGetSignData = errors.New("Failed to get sign data")
+	errFailedGetAddress  = errors.New("Failed to get address by account ID")
 )
 
 type HTLCAccount struct {
@@ -236,6 +241,36 @@ func listAddresses(accountID string) ([]AddressInfo, error) {
 	}
 
 	return *res, nil
+}
+
+func getAddress(accountID, contractControlProgram string) (string, error) {
+	publicKey, err := getRecipientPublicKey(contractControlProgram)
+	if err != nil {
+		return "", err
+	}
+
+	publicKeyBytes, err := hex.DecodeString(publicKey)
+	if err != nil {
+		return "", err
+	}
+
+	publicKeyHash := crypto.Ripemd160(publicKeyBytes)
+	controlProgram, err := vmutil.P2WPKHProgram(publicKeyHash)
+	if err != nil {
+		return "", err
+	}
+
+	addressInfos, err := listAddresses(accountID)
+	if err != nil {
+		return "", err
+	}
+
+	for _, addressInfo := range addressInfos {
+		if addressInfo.ControlProgram == hex.EncodeToString(controlProgram) {
+			return addressInfo.Address, nil
+		}
+	}
+	return "", errFailedGetAddress
 }
 
 type signUnlockHTLCContractTransactionRequest struct {
