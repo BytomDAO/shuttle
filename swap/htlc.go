@@ -342,6 +342,30 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 	return res.Tx.RawTransaction, nil
 }
 
+func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
+	payload := []byte(fmt.Sprintf(
+		decodeProgramPayload,
+		program,
+	))
+	res := new(decodeProgramResponse)
+	if err := request(decodeProgramURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	instructions := strings.Fields(res.Instructions)
+	contractArgs := new(HTLCContractArgs)
+	contractArgs.Hash = instructions[1]
+	contractArgs.RecipientPublicKey = instructions[5]
+	contractArgs.SenderPublicKey = instructions[7]
+	blockHeight, err := parseUint64(instructions[3])
+	if err != nil {
+		return nil, err
+	}
+
+	contractArgs.BlockHeight = blockHeight
+	return contractArgs, nil
+}
+
 // DeployHTLCContract deploy HTLC contract.
 func DeployHTLCContract(account AccountInfo, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
 	// compile locked HTLC cotnract

@@ -41,6 +41,9 @@ func init() {
 
 	callCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
 	callCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
+
+	// call HTLC contract arguments
+	callHTLCCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "HTLC contract locked value with preimage")
 }
 
 var (
@@ -66,6 +69,7 @@ var (
 	recipientPublicKey = ""
 	blockHeight        = uint64(0)
 	hash               = ""
+	preimage           = ""
 )
 
 var deployCmd = &cobra.Command{
@@ -208,5 +212,59 @@ var deployHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 		fmt.Println("--> contractUTXOID:", contractUTXOID)
+	},
+}
+
+var callHTLCCmd = &cobra.Command{
+	Use:   "callHTLC <accountID> <password> <buyer-program> <contractUTXOID> <preimage> [txFee flag]",
+	Short: "callHTLC HTLC contract for asset swapping",
+	Args:  cobra.ExactArgs(5),
+	Run: func(cmd *cobra.Command, args []string) {
+		account := swap.AccountInfo{
+			AccountID: args[0],
+			Password:  args[1],
+			Receiver:  args[2],
+			TxFee:     txFee,
+		}
+		if len(account.AccountID) == 0 || len(account.Password) == 0 || len(account.Receiver) == 0 {
+			fmt.Println("The part field of the structure Account is empty:", account)
+			os.Exit(0)
+		}
+
+		contractUTXOID := args[3]
+		if len(contractUTXOID) == 0 {
+			fmt.Println("contract utxoID is empty:", contractUTXOID)
+			os.Exit(0)
+		}
+
+		program, contractValue, err := swap.ListUnspentOutputs(contractUTXOID)
+		if err != nil {
+			fmt.Println("list unspent outputs err:", err)
+			os.Exit(0)
+		}
+
+		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
+			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
+			os.Exit(0)
+		}
+
+		contractArgs, err := swap.DecodeHTLCProgram(program)
+		if err != nil {
+			fmt.Println("decode program err:", err)
+			os.Exit(0)
+		}
+
+		if len(contractArgs.Hash) == 0 || len(contractArgs.RecipientPublicKey) == 0 || len(contractArgs.SenderPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) {
+			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+			os.Exit(0)
+		}
+
+		preimage := args[4]
+		txID, err := swap.CallHTLCContract(account, contractUTXOID, preimage, *contractArgs, *contractValue)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+		fmt.Println("--> txID:", txID)
 	},
 }
