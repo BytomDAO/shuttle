@@ -17,12 +17,12 @@ var (
 	errFailedGetAddress  = errors.New("Failed to get address by account ID")
 )
 
-type HTLCAccount struct {
-	AccountID string
-	Password  string
-	Receiver  string
-	TxFee     uint64
-}
+// type AccountInfo struct {
+// 	AccountID string
+// 	Password  string
+// 	Receiver  string
+// 	TxFee     uint64
+// }
 
 type HTLCContractArgs struct {
 	SenderPublicKey    string
@@ -95,7 +95,7 @@ var buildLockHTLCContractTransactionPayload = `{
     "base_transaction": null
 }`
 
-func buildLockHTLCContractTransaction(account HTLCAccount, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
+func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(
 		buildLockHTLCContractTransactionPayload,
 		account.AccountID,
@@ -147,7 +147,7 @@ var buildUnlockHTLCContractTransactionPayload = `{
     "base_transaction": null
 }`
 
-func buildUnlockHTLCContractTransaction(account HTLCAccount, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTransactionResponse, error) {
+func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTransactionResponse, error) {
 	payload := []byte(fmt.Sprintf(
 		buildUnlockHTLCContractTransactionPayload,
 		contractUTXOID,
@@ -324,7 +324,7 @@ var signUnlockHTLCContractTransactionPayload = `{
     }
 }`
 
-func signUnlockHTLCContractTransaction(account HTLCAccount, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
+func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
 	payload := []byte(fmt.Sprintf(
 		signUnlockHTLCContractTransactionPayload,
 		account.Password,
@@ -343,7 +343,7 @@ func signUnlockHTLCContractTransaction(account HTLCAccount, preimage, recipientS
 }
 
 // DeployHTLCContract deploy HTLC contract.
-func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
+func DeployHTLCContract(account AccountInfo, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
 	// compile locked HTLC cotnract
 	HTLCContractControlProgram, err := compileLockHTLCContract(contractArgs)
 	if err != nil {
@@ -377,7 +377,7 @@ func DeployHTLCContract(account HTLCAccount, contractValue AssetAmount, contract
 }
 
 // CallHTLCContract call HTLC contract.
-func CallHTLCContract(account HTLCAccount, contractUTXOID, preimage string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
+func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
 	// build unlocked contract transaction
 	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
 	if err != nil {

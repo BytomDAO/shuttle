@@ -19,7 +19,7 @@ var contractValue = AssetAmount{
 }
 
 func TestDeployHTLCContract(t *testing.T) {
-	account := HTLCAccount{
+	account := AccountInfo{
 		AccountID: "10CJPO1HG0A02",
 		Password:  "12345",
 		TxFee:     uint64(100000000),
@@ -42,7 +42,7 @@ func TestDeployHTLCContract(t *testing.T) {
 }
 
 func TestBuildUnlockHTLCContractTransaction(t *testing.T) {
-	account := HTLCAccount{
+	account := AccountInfo{
 		AccountID: "10CKAD3000A02",
 		Password:  "12345",
 		Receiver:  "00140fdee108543d305308097019ceb5aec3da60ec66",
@@ -102,13 +102,13 @@ func TestSignMessage(t *testing.T) {
 }
 
 func TestCallHTLCContract(t *testing.T) {
-	account := HTLCAccount{
+	account := AccountInfo{
 		AccountID: "10CKAD3000A02",
 		Password:  "12345",
 		Receiver:  "0014a90cd8c57c682e01f3e7553ea18722621be845f2",
 		TxFee:     uint64(100000000),
 	}
-	contractUTXOID := "4de2ad249889499a0c5cc3190061d50390f295d6d00cf86d35df63a723a8dd0e"
+	contractUTXOID := "b70636e3093faac1d1d8fea6bf3f317bbfe8a9ac63c4ea33aea2c808217d3163"
 	preimage := "68656c6c6f"
 
 	txID, err := CallHTLCContract(account, contractUTXOID, preimage, contractArgs, contractValue)

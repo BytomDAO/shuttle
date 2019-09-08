@@ -21,6 +21,17 @@ func init() {
 	deployCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
 	deployCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
 
+	// deploy HTLC contract arguments
+	deployHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+
+	deployHTLCCmd.PersistentFlags().StringVar(&senderPublicKey, "sender", "", "HTLC contract paramenter with sender PublicKey")
+	deployHTLCCmd.PersistentFlags().StringVar(&recipientPublicKey, "recipient", "", "HTLC contract paramenter with recipientPublicKey")
+	deployHTLCCmd.PersistentFlags().Uint64Var(&blockHeight, "blockHeight", 0, "HTLC contract locked value with blockHeight")
+	deployHTLCCmd.PersistentFlags().StringVar(&hash, "hash", "", "HTLC contract locked value with hash")
+
+	deployHTLCCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "HTLC contract locked value with assetID")
+	deployHTLCCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "HTLC contract locked value with amount")
+
 	// call contract arguments
 	callCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
 
@@ -48,6 +59,13 @@ var (
 	// unlock contract paramenters
 	contractUTXOID = ""
 	buyer          = ""
+)
+
+var (
+	senderPublicKey    = ""
+	recipientPublicKey = ""
+	blockHeight        = uint64(0)
+	hash               = ""
 )
 
 var deployCmd = &cobra.Command{
@@ -146,5 +164,49 @@ var callCmd = &cobra.Command{
 			os.Exit(0)
 		}
 		fmt.Println("--> txID:", txID)
+	},
+}
+
+var deployHTLCCmd = &cobra.Command{
+	Use:   "deployHTLC <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag]",
+	Short: "deploy HTLC contract",
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		account := swap.AccountInfo{
+			AccountID: args[0],
+			Password:  args[1],
+			TxFee:     txFee,
+		}
+		if len(account.AccountID) == 0 || len(account.Password) == 0 {
+			fmt.Println("The part field of the structure AccountInfo is empty:", account)
+			os.Exit(0)
+		}
+
+		contractArgs := swap.HTLCContractArgs{
+			SenderPublicKey:    senderPublicKey,
+			RecipientPublicKey: recipientPublicKey,
+			BlockHeight:        blockHeight,
+			Hash:               hash,
+		}
+		if len(contractArgs.SenderPublicKey) == 0 || len(contractArgs.RecipientPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) || len(contractArgs.Hash) == 0 {
+			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+			os.Exit(0)
+		}
+
+		contractValue := swap.AssetAmount{
+			Asset:  assetLocked,
+			Amount: amountLocked,
+		}
+		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
+			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
+			os.Exit(0)
+		}
+
+		contractUTXOID, err := swap.DeployHTLCContract(account, contractValue, contractArgs)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+		fmt.Println("--> contractUTXOID:", contractUTXOID)
 	},
 }
