@@ -18,6 +18,7 @@ var (
 	submitTransactionURL    = localURL + "submit-transaction"
 	compileURL              = localURL + "compile"
 	decodeProgramURL        = localURL + "decode-program"
+	signMessageURl          = localURL + "sign-message"
 	listAccountsURL         = localURL + "list-accounts"
 	listAddressesURL        = localURL + "list-addresses"
 	listBalancesURL         = localURL + "list-balances"

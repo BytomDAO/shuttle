@@ -273,6 +273,31 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 	return "", errFailedGetAddress
 }
 
+var signMessagePayload = `{
+    "address": "%s",
+    "message": "%s",
+    "password": "%s"
+}`
+
+type signMessageResponse struct {
+	Signature   string `json:"signature"`
+	DerivedXPub string `json:"derived_xpub"`
+}
+
+func signMessage(address, message, password string) (string, error) {
+	payload := []byte(fmt.Sprintf(
+		signMessagePayload,
+		address,
+		message,
+		password,
+	))
+	res := new(signMessageResponse)
+	if err := request(signMessageURl, payload, res); err != nil {
+		return "", nil
+	}
+	return res.Signature, nil
+}
+
 type signUnlockHTLCContractTransactionRequest struct {
 	Password    string                                     `json:"password"`
 	Transaction buildUnlockHTLCContractTransactionResponse `json:"transaction"`

@@ -77,3 +77,14 @@ func TestListAddresses(t *testing.T) {
 		}
 	}
 }
+
+func TestSignMessage(t *testing.T) {
+	address := "sm1q828d7re2wp20kgx4zyrw4e049k4v0enwdadq40"
+	message := "719b521e9f341b1a07edf3805f8a5c5f9de453b61eb6e60f14a4bf94fa2bf6bc"
+	password := "12345"
+	sig, err := signMessage(address, message, password)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("signature:", sig)
+}
