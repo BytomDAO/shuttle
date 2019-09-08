@@ -114,11 +114,6 @@ func buildLockHTLCContractTransaction(account HTLCAccount, contractValue AssetAm
 	return res, nil
 }
 
-// type SigningInstruction struct {
-// 	Position          uint64        `json:"position"`
-// 	WitnessComponents []interface{} `json:"witness_components"`
-// }
-
 type buildUnlockHTLCContractTransactionResponse struct {
 	RawTransaction         string        `json:"raw_transaction"`
 	SigningInstructions    []interface{} `json:"signing_instructions"`
@@ -255,6 +250,7 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("account controlProgram:", hex.EncodeToString(controlProgram))
 
 	addressInfos, err := listAddresses(accountID)
 	if err != nil {
