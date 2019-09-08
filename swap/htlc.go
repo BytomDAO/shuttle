@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -197,6 +198,20 @@ func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (str
 		}
 	}
 	return "", "", errFailedGetSignData
+}
+
+func getRecipientPublicKey(contractControlProgram string) (string, error) {
+	payload := []byte(fmt.Sprintf(
+		decodeProgramPayload,
+		contractControlProgram,
+	))
+	res := new(decodeProgramResponse)
+	if err := request(decodeProgramURL, payload, res); err != nil {
+		return "", err
+	}
+
+	publicKey := strings.Fields(res.Instructions)[5]
+	return publicKey, nil
 }
 
 type signUnlockHTLCContractTransactionRequest struct {
