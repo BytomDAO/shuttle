@@ -17,13 +17,6 @@ var (
 	errFailedGetAddress  = errors.New("Failed to get address by account ID")
 )
 
-// type AccountInfo struct {
-// 	AccountID string
-// 	Password  string
-// 	Receiver  string
-// 	TxFee     uint64
-// }
-
 type HTLCContractArgs struct {
 	SenderPublicKey    string
 	RecipientPublicKey string

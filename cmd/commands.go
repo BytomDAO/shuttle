@@ -12,23 +12,19 @@ import (
 func init() {
 	// deploy contract arguments
 	deployCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-
 	deployCmd.PersistentFlags().StringVar(&assetRequested, "assetRequested", "", "tradeoff contract paramenter with requested assetID")
 	deployCmd.PersistentFlags().Uint64Var(&amountRequested, "amountRequested", 0, "tradeoff contract paramenter with requested amount")
 	deployCmd.PersistentFlags().StringVar(&seller, "seller", "", "tradeoff contract paramenter with seller control-program")
 	deployCmd.PersistentFlags().StringVar(&cancelKey, "cancelKey", "", "tradeoff contract paramenter with seller pubkey for cancelling the contract")
-
 	deployCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
 	deployCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
 
 	// deploy HTLC contract arguments
 	deployHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-
 	deployHTLCCmd.PersistentFlags().StringVar(&senderPublicKey, "sender", "", "HTLC contract paramenter with sender PublicKey")
 	deployHTLCCmd.PersistentFlags().StringVar(&recipientPublicKey, "recipient", "", "HTLC contract paramenter with recipientPublicKey")
 	deployHTLCCmd.PersistentFlags().Uint64Var(&blockHeight, "blockHeight", 0, "HTLC contract locked value with blockHeight")
 	deployHTLCCmd.PersistentFlags().StringVar(&hash, "hash", "", "HTLC contract locked value with hash")
-
 	deployHTLCCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "HTLC contract locked value with assetID")
 	deployHTLCCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "HTLC contract locked value with amount")
 
