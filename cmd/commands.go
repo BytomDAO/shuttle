@@ -34,13 +34,6 @@ func init() {
 
 	// call contract arguments
 	callCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-
-	callCmd.PersistentFlags().StringVar(&assetRequested, "assetRequested", "", "tradeoff contract paramenter with requested assetID")
-	callCmd.PersistentFlags().Uint64Var(&amountRequested, "amountRequested", 0, "tradeoff contract paramenter with requested amount")
-	callCmd.PersistentFlags().StringVar(&seller, "seller", "", "tradeoff contract paramenter with seller control-program")
-
-	callCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
-	callCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
 }
 
 var (
