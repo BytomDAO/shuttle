@@ -41,9 +41,6 @@ func init() {
 
 	callCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
 	callCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
-
-	// call HTLC contract arguments
-	callHTLCCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "HTLC contract locked value with preimage")
 }
 
 var (
