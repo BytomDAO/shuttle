@@ -206,12 +206,16 @@ type AddressInfo struct {
 	ControlProgram string `json:"control_program"`
 }
 
-var listAddressesReq = `{
-	"account_id":"%s"
-}`
+type listAddressesReq struct {
+	AccountID string `json:"account_id"`
+}
 
 func listAddresses(accountID string) ([]AddressInfo, error) {
-	payload := []byte(fmt.Sprintf(listAddressesReq, accountID))
+	payload, err := json.Marshal(listAddressesReq{AccountID: accountID})
+	if err != nil {
+		return nil, err
+	}
+
 	res := new([]AddressInfo)
 	if err := request(listAddressesURL, payload, res); err != nil {
 		return nil, err
