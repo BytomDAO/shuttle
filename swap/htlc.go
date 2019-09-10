@@ -254,11 +254,11 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 	return "", errFailedGetAddress
 }
 
-var signMessageReq = `{
-    "address": "%s",
-    "message": "%s",
-    "password": "%s"
-}`
+type signMessageReq struct {
+	Address  string `json:"address"`
+	Message  string `json:"message"`
+	Password string `json:"password"`
+}
 
 type signMessageResp struct {
 	Signature   string `json:"signature"`
@@ -266,11 +266,15 @@ type signMessageResp struct {
 }
 
 func signMessage(address, message, password string) (string, error) {
-	payload := []byte(fmt.Sprintf(signMessageReq,
-		address,
-		message,
-		password,
-	))
+	payload, err := json.Marshal(signMessageReq{
+		Address:  address,
+		Message:  message,
+		Password: password,
+	})
+	if err != nil {
+		return "", err
+	}
+
 	res := new(signMessageResp)
 	if err := request(signMessageURl, payload, res); err != nil {
 		return "", nil
