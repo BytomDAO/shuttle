@@ -281,13 +281,14 @@ func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 		return "", nil, err
 	}
 
-	contractLockedValue := new(AssetAmount)
-	if len(res) != 0 {
-		contractLockedValue.Asset = res[0].AssetID
-		contractLockedValue.Amount = res[0].AssetAmount
-		return res[0].Program, contractLockedValue, nil
+	if len(res) == 0 {
+		return "", nil, errListUnspentOutputs
 	}
-	return "", nil, errListUnspentOutputs
+
+	contractLockedValue := new(AssetAmount)
+	contractLockedValue.Asset = res[0].AssetID
+	contractLockedValue.Amount = res[0].AssetAmount
+	return res[0].Program, contractLockedValue, nil
 }
 
 type decodeProgramResp struct {
