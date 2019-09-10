@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
-	errMarshal                 = errors.New("Failed to marshal")
-	errListUnspentOutputs      = errors.New("Failed to list unspent outputs")
+	errFailedGetContractUTXOID   = errors.New("Failed to get contract UTXO ID")
+	errMarshal                   = errors.New("Failed to marshal")
+	errListUnspentOutputs        = errors.New("Failed to list unspent outputs")
+	errTradeOffParametersInvalid = errors.New("Trade off parameters invalid")
 )
 
 type compileLockContractResp struct {
@@ -40,8 +41,7 @@ var compileLockContractReq = `{
 
 // compileLockContract return contract control program
 func compileLockContract(contractArgs ContractArgs) (string, error) {
-	payload := []byte(fmt.Sprintf(
-		compileLockContractReq,
+	payload := []byte(fmt.Sprintf(compileLockContractReq,
 		contractArgs.Asset,
 		strconv.FormatUint(contractArgs.Amount, 10),
 		contractArgs.Seller,
@@ -83,8 +83,7 @@ var buildLockTxReq = `{
 
 // buildLockTransaction build locked contract transaction.
 func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
-	payload := []byte(fmt.Sprintf(
-		buildLockTxReq,
+	payload := []byte(fmt.Sprintf(buildLockTxReq,
 		accountInfo.AccountID,
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
@@ -234,8 +233,7 @@ var buildUnlockContractTxReq = `{
 
 // buildUnlockContractTransaction build unlocked contract transaction.
 func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
-	payload := []byte(fmt.Sprintf(
-		buildUnlockContractTxReq,
+	payload := []byte(fmt.Sprintf(buildUnlockContractTxReq,
 		contractUTXOID,
 		strconv.FormatUint(contractArgs.Amount, 10),
 		contractArgs.Asset,
@@ -269,10 +267,7 @@ var listUnspentOutputsReq = `{
 }`
 
 func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
-	payload := []byte(fmt.Sprintf(
-		listUnspentOutputsReq,
-		contractUTXOID,
-	))
+	payload := []byte(fmt.Sprintf(listUnspentOutputsReq, contractUTXOID))
 	var res []listUnspentOutputsResp
 	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
@@ -296,10 +291,7 @@ var decodeProgramPayload = `{
 }`
 
 func DecodeProgram(program string) (*ContractArgs, error) {
-	payload := []byte(fmt.Sprintf(
-		decodeProgramPayload,
-		program,
-	))
+	payload := []byte(fmt.Sprintf(decodeProgramPayload, program))
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
@@ -310,6 +302,9 @@ func DecodeProgram(program string) (*ContractArgs, error) {
 	contractArgs.CancelKey = instructions[1]
 	contractArgs.Seller = instructions[3]
 	contractArgs.AssetAmount.Asset = instructions[7]
+	if len(contractArgs.CancelKey) != 64 || len(contractArgs.AssetAmount.Asset) != 64 {
+		return nil, errTradeOffParametersInvalid
+	}
 
 	amount, err := parseUint64(instructions[5])
 	if err != nil {

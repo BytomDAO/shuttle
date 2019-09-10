@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	errFailedGetSignData = errors.New("Failed to get sign data")
-	errFailedGetAddress  = errors.New("Failed to get address by account ID")
+	errFailedGetSignData     = errors.New("Failed to get sign data")
+	errFailedGetAddress      = errors.New("Failed to get address by account ID")
+	errHTLCParametersInvalid = errors.New("HTLC parameters invalid")
 )
 
 type HTLCContractArgs struct {
@@ -47,8 +48,7 @@ var compileLockHTLCContractReq = `{
 }`
 
 func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
-	payload := []byte(fmt.Sprintf(
-		compileLockHTLCContractReq,
+	payload := []byte(fmt.Sprintf(compileLockHTLCContractReq,
 		contractArgs.SenderPublicKey,
 		contractArgs.RecipientPublicKey,
 		strconv.FormatUint(contractArgs.BlockHeight, 10),
@@ -89,8 +89,7 @@ var buildLockHTLCContractTxReq = `{
 }`
 
 func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
-	payload := []byte(fmt.Sprintf(
-		buildLockHTLCContractTxReq,
+	payload := []byte(fmt.Sprintf(buildLockHTLCContractTxReq,
 		account.AccountID,
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
@@ -141,8 +140,7 @@ var buildUnlockHTLCContractTxReq = `{
 }`
 
 func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTxResp, error) {
-	payload := []byte(fmt.Sprintf(
-		buildUnlockHTLCContractTxReq,
+	payload := []byte(fmt.Sprintf(buildUnlockHTLCContractTxReq,
 		contractUTXOID,
 		account.AccountID,
 		strconv.FormatUint(account.TxFee, 10),
@@ -172,10 +170,7 @@ var decodeRawTxReq = `{
 }`
 
 func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (string, string, error) {
-	payload := []byte(fmt.Sprintf(
-		decodeRawTxReq,
-		rawTransaction,
-	))
+	payload := []byte(fmt.Sprintf(decodeRawTxReq, rawTransaction))
 	res := new(decodeRawTxResp)
 	if err := request(decodeRawTransactionURL, payload, res); err != nil {
 		return "", "", err
@@ -190,10 +185,7 @@ func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (str
 }
 
 func getRecipientPublicKey(contractControlProgram string) (string, error) {
-	payload := []byte(fmt.Sprintf(
-		decodeProgramPayload,
-		contractControlProgram,
-	))
+	payload := []byte(fmt.Sprintf(decodeProgramPayload, contractControlProgram))
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return "", err
@@ -312,8 +304,7 @@ var signUnlockHTLCContractTxReq = `{
 }`
 
 func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
-	payload := []byte(fmt.Sprintf(
-		signUnlockHTLCContractTxReq,
+	payload := []byte(fmt.Sprintf(signUnlockHTLCContractTxReq,
 		account.Password,
 		rawTransaction,
 		preimage,
@@ -330,10 +321,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 }
 
 func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
-	payload := []byte(fmt.Sprintf(
-		decodeProgramPayload,
-		program,
-	))
+	payload := []byte(fmt.Sprintf(decodeProgramPayload, program))
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
@@ -344,6 +332,10 @@ func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 	contractArgs.Hash = instructions[1]
 	contractArgs.RecipientPublicKey = instructions[5]
 	contractArgs.SenderPublicKey = instructions[7]
+	if len(contractArgs.Hash) != 64 || len(contractArgs.RecipientPublicKey) != 64 || len(contractArgs.SenderPublicKey) != 64 {
+		return nil, errHTLCParametersInvalid
+	}
+
 	blockHeight, err := parseUint64(instructions[3])
 	if err != nil {
 		return nil, err
