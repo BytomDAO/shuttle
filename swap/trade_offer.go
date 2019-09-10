@@ -243,7 +243,7 @@ func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID stri
 		return "", err
 	}
 
-	contractArgs, err := DecodeProgram(program)
+	contractArgs, err := decodeProgram(program)
 	if err != nil {
 		return "", err
 	}
@@ -314,7 +314,7 @@ type decodeProgramReq struct {
 	Program string `json:"program"`
 }
 
-func DecodeProgram(program string) (*ContractArgs, error) {
+func decodeProgram(program string) (*ContractArgs, error) {
 	payload, err := json.Marshal(decodeProgramReq{Program: program})
 	if err != nil {
 		return nil, err

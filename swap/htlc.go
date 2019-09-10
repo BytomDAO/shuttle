@@ -335,7 +335,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 	return res.Tx.RawTransaction, nil
 }
 
-func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
+func decodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 	payload, err := json.Marshal(decodeProgramReq{Program: program})
 	if err != nil {
 		return nil, err
