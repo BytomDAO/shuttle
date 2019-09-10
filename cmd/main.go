@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -19,8 +18,6 @@ var swapCmd = &cobra.Command{
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	swapCmd.AddCommand(deployCmd)
 	swapCmd.AddCommand(callCmd)
 	swapCmd.AddCommand(deployHTLCCmd)

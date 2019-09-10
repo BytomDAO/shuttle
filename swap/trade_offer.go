@@ -260,14 +260,22 @@ type listUnspentOutputsResp struct {
 	Program     string `json:"program"`
 }
 
-var listUnspentOutputsReq = `{
-	"id": "%s",
-	"unconfirmed": true,
-	"smart_contract": true
-}`
+type listUnspentOutputsReq struct {
+	UTXOID        string `json:"id"`
+	Unconfirmed   bool   `json:"unconfirmed"`
+	SmartContract bool   `json:"smart_contract"`
+}
 
 func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
-	payload := []byte(fmt.Sprintf(listUnspentOutputsReq, contractUTXOID))
+	payload, err := json.Marshal(listUnspentOutputsReq{
+		UTXOID:        contractUTXOID,
+		Unconfirmed:   true,
+		SmartContract: true,
+	})
+	if err != nil {
+		return "", nil, err
+	}
+
 	var res []listUnspentOutputsResp
 	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
