@@ -39,7 +39,7 @@ var compileLockHTLCContractReq = `{
             "string":"%s"
         },
         {
-            "integer":%s
+            "integer":%d
         },
         {
             "string":"%s"
@@ -51,7 +51,7 @@ func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(compileLockHTLCContractReq,
 		contractArgs.SenderPublicKey,
 		contractArgs.RecipientPublicKey,
-		strconv.FormatUint(contractArgs.BlockHeight, 10),
+		contractArgs.BlockHeight,
 		contractArgs.Hash,
 	))
 	res := new(compileLockHTLCContractResp)
