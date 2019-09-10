@@ -15,6 +15,7 @@ var (
 	errListUnspentOutputs        = errors.New("Failed to list unspent outputs")
 	errTradeOffParametersInvalid = errors.New("Trade off parameters invalid")
 	errFailedSignTx              = errors.New("Failed to sign transaction")
+	errFailedGetPublicKey        = errors.New("Failed to get public key")
 )
 
 type compileLockContractResp struct {
@@ -356,6 +357,105 @@ func parseUint64(s string) (uint64, error) {
 	return num, nil
 }
 
+type listPublicKeysReq struct {
+	AccountID string `json:"account_id"`
+}
+
+type PubkeyInfo struct {
+	PublicKey      string   `json:"pubkey"`
+	DerivationPath []string `json:"derivation_path"`
+}
+
+type listPublicKeysResp struct {
+	RootXPub    string       `json:"root_xpub"`
+	PubkeyInfos []PubkeyInfo `json:"pubkey_infos"`
+}
+
+type XPubKeyInfo struct {
+	XPubKey        string   `json:"xpub"`
+	DerivationPath []string `json:"derivation_path"`
+}
+
+func getXPubKeyInfo(accountID, publicKey string) (*XPubKeyInfo, error) {
+	payload, err := json.Marshal(listPublicKeysReq{AccountID: accountID})
+	if err != nil {
+		return nil, err
+	}
+
+	res := new(listPublicKeysResp)
+	if err := request(listPubkeysURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	xpubKeyInfo := new(XPubKeyInfo)
+	xpubKeyInfo.XPubKey = res.RootXPub
+	for _, PubkeyInfo := range res.PubkeyInfos {
+		if PubkeyInfo.PublicKey == publicKey {
+			xpubKeyInfo.DerivationPath = PubkeyInfo.DerivationPath
+			return xpubKeyInfo, nil
+		}
+	}
+	return nil, errFailedGetPublicKey
+}
+
+var buildCancelContractTxReq = `{
+    "actions": [
+        {
+            "type": "spend_account_unspent_output",
+            "arguments": [
+                {
+                    "type": "raw_tx_signature",
+                    "raw_data": %s
+                },
+                {
+                	"type":"integer",
+                	"raw_data":{
+                		"value":1
+                	}
+                }
+			],
+			"use_unconfirmed":true,
+            "output_id": "%s"
+        },
+        {
+            "account_id": "%s",
+            "amount": %d,
+            "asset_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			"use_unconfirmed":true,
+			"type": "spend_account"
+        },
+        {
+            "amount": %d,
+            "asset_id": "%s",
+            "control_program": "%s",
+            "type": "control_program"
+        }
+    ],
+    "ttl": 0,
+    "base_transaction": null
+}`
+
+func buildCancelContractTransaction(accountInfo AccountInfo, contractUTXOID string, xpubKeyInfo *XPubKeyInfo, contractValue *AssetAmount) (interface{}, error) {
+	xpubKeyInfoStr, err := json.Marshal(xpubKeyInfo)
+	if err != nil {
+		return "", err
+	}
+	payload := []byte(fmt.Sprintf(buildCancelContractTxReq,
+		xpubKeyInfoStr,
+		contractUTXOID,
+		accountInfo.AccountID,
+		accountInfo.TxFee,
+		contractValue.Amount,
+		contractValue.Asset,
+		accountInfo.Receiver,
+	))
+	res := new(interface{})
+	if err := request(buildTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+	return res, nil
+}
+
 // DeployContract deploy contract.
 func DeployContract(accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
 	// compile locked contract
@@ -406,6 +506,46 @@ func CallContract(accountInfo AccountInfo, contractUTXOID string) (string, error
 
 	// submit signed unlocked contract transaction
 	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
+
+func CancelTradeoffContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
+	// get contract control program by contract UTXOID
+	contractControlProgram, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	if err != nil {
+		return "", err
+	}
+
+	// get public key by contract control program
+	contractArgs, err := decodeProgram(contractControlProgram)
+	if err != nil {
+		return "", err
+	}
+
+	// get public key path and root xpub by contract args
+	xpubInfo, err := getXPubKeyInfo(accountInfo.AccountID, contractArgs.CancelKey)
+	if err != nil {
+		return "", err
+	}
+
+	// build cancel contract transaction
+	builtTx, err := buildCancelContractTransaction(accountInfo, contractUTXOID, xpubInfo, contractValue)
+	if err != nil {
+		return "", err
+	}
+
+	// sign cancel contract transaction
+	signedTx, err := signTransaction(accountInfo.Password, builtTx)
+	if err != nil {
+		return "", err
+	}
+
+	// submit signed unlocked contract transaction
+	txID, err := submitTransaction(signedTx)
 	if err != nil {
 		return "", err
 	}
