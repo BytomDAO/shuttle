@@ -165,12 +165,16 @@ type decodeRawTxResp struct {
 	TransactionInputs []TransactionInput `json:"inputs"`
 }
 
-var decodeRawTxReq = `{
-	"raw_transaction":"%s"
-}`
+type decodeRawTxReq struct {
+	RawTx string `json:"raw_transaction"`
+}
 
 func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (string, string, error) {
-	payload := []byte(fmt.Sprintf(decodeRawTxReq, rawTransaction))
+	payload, err := json.Marshal(decodeRawTxReq{RawTx: rawTransaction})
+	if err != nil {
+		return "", "", err
+	}
+
 	res := new(decodeRawTxResp)
 	if err := request(decodeRawTransactionURL, payload, res); err != nil {
 		return "", "", err
