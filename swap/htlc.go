@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/bytom/crypto"
@@ -123,13 +122,13 @@ var buildUnlockHTLCContractTxReq = `{
         },
         {
             "account_id": "%s",
-            "amount": %s,
+            "amount": %d,
             "asset_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
             "use_unconfirmed":true,
             "type": "spend_account"
         },
         {
-            "amount": %s,
+            "amount": %d,
             "asset_id": "%s",
             "control_program": "%s",
             "type": "control_program"
@@ -143,8 +142,8 @@ func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID stri
 	payload := []byte(fmt.Sprintf(buildUnlockHTLCContractTxReq,
 		contractUTXOID,
 		account.AccountID,
-		strconv.FormatUint(account.TxFee, 10),
-		strconv.FormatUint(contractValue.Amount, 10),
+		account.TxFee,
+		contractValue.Amount,
 		contractValue.Asset,
 		account.Receiver,
 	))
@@ -310,7 +309,7 @@ var signUnlockHTLCContractTxReq = `{
             },
             %s
         ],
-        "fee": %s,
+        "fee": %d,
         "allow_additional_actions": false
     }
 }`
@@ -322,7 +321,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 		preimage,
 		recipientSig,
 		signingInst,
-		strconv.FormatUint(account.TxFee, 10),
+		account.TxFee,
 	))
 	res := new(signTxResp)
 	if err := request(signTransactionURL, payload, res); err != nil {
