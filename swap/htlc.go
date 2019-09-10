@@ -243,7 +243,6 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("account controlProgram:", hex.EncodeToString(controlProgram))
 
 	addressInfos, err := listAddresses(accountID)
 	if err != nil {
@@ -395,20 +394,16 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string, cont
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("raw transaction:", buildTxResp.RawTransaction)
 
 	signingInst, err := json.Marshal(buildTxResp.SigningInstructions[1])
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("signingInst:", signingInst)
 
 	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("contractControlProgram:", contractControlProgram)
-	fmt.Println("signData:", signData)
 
 	// get address by account ID and contract control program
 	address, err := getAddress(account.AccountID, contractControlProgram)
@@ -421,7 +416,6 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string, cont
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("recipientSig:", recipientSig)
 
 	// sign raw transaction
 	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
