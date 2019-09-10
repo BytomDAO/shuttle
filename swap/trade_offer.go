@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -28,7 +27,7 @@ var compileLockContractReq = `{
 			"string":"%s"
 		},
 		{
-			"integer":%s
+			"integer":%d
 		},
 		{
 			"string":"%s"
@@ -43,7 +42,7 @@ var compileLockContractReq = `{
 func compileLockContract(contractArgs ContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(compileLockContractReq,
 		contractArgs.Asset,
-		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Amount,
 		contractArgs.Seller,
 		contractArgs.CancelKey,
 	))
@@ -58,20 +57,20 @@ var buildLockTxReq = `{
 	"actions":[
 		{
 			"account_id":"%s",
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"%s",
 			"use_unconfirmed":true,
 			"type":"spend_account"
 		},
 		{
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"%s",
 			"control_program":"%s",
 			"type":"control_program"
 		},
 		{
 			"account_id":"%s",
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 			"use_unconfirmed":true,
 			"type":"spend_account"
@@ -85,13 +84,13 @@ var buildLockTxReq = `{
 func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(buildLockTxReq,
 		accountInfo.AccountID,
-		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Amount,
 		contractValue.Asset,
-		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Amount,
 		contractValue.Asset,
 		contractControlProgram,
 		accountInfo.AccountID,
-		strconv.FormatUint(accountInfo.TxFee, 10),
+		accountInfo.TxFee,
 	))
 	res := new(interface{})
 	if err := request(buildTransactionURL, payload, res); err != nil {
@@ -201,27 +200,27 @@ var buildUnlockContractTxReq = `{
 			"output_id":"%s"
 		},
 		{
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"%s",
 			"control_program":"%s",
 			"type":"control_program"
 		},
 		{
 			"account_id":"%s",
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"%s",
 			"use_unconfirmed":true,
 			"type":"spend_account"
 		},
 		{
 			"account_id":"%s",
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 			"use_unconfirmed":true,
 			"type":"spend_account"
 		},
 		{
-			"amount":%s,
+			"amount":%d,
 			"asset_id":"%s",
 			"control_program":"%s",
 			"type":"control_program"
@@ -235,15 +234,15 @@ var buildUnlockContractTxReq = `{
 func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(buildUnlockContractTxReq,
 		contractUTXOID,
-		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Amount,
 		contractArgs.Asset,
 		contractArgs.Seller,
 		accountInfo.AccountID,
-		strconv.FormatUint(contractArgs.Amount, 10),
+		contractArgs.Amount,
 		contractArgs.Asset,
 		accountInfo.AccountID,
-		strconv.FormatUint(accountInfo.TxFee, 10),
-		strconv.FormatUint(contractValue.Amount, 10),
+		accountInfo.TxFee,
+		contractValue.Amount,
 		contractValue.Asset,
 		accountInfo.Receiver,
 	))
