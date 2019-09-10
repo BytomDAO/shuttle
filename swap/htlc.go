@@ -185,7 +185,7 @@ func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (str
 }
 
 func getRecipientPublicKey(contractControlProgram string) (string, error) {
-	payload := []byte(fmt.Sprintf(decodeProgramPayload, contractControlProgram))
+	payload := []byte(fmt.Sprintf(decodeProgramReq, contractControlProgram))
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return "", err
@@ -202,15 +202,12 @@ type AddressInfo struct {
 	ControlProgram string `json:"control_program"`
 }
 
-var listAddressesPayload = `{
+var listAddressesReq = `{
 	"account_id":"%s"
 }`
 
 func listAddresses(accountID string) ([]AddressInfo, error) {
-	payload := []byte(fmt.Sprintf(
-		listAddressesPayload,
-		accountID,
-	))
+	payload := []byte(fmt.Sprintf(listAddressesReq, accountID))
 	res := new([]AddressInfo)
 	if err := request(listAddressesURL, payload, res); err != nil {
 		return nil, err
@@ -261,8 +258,7 @@ type signMessageResp struct {
 }
 
 func signMessage(address, message, password string) (string, error) {
-	payload := []byte(fmt.Sprintf(
-		signMessageReq,
+	payload := []byte(fmt.Sprintf(signMessageReq,
 		address,
 		message,
 		password,
@@ -321,7 +317,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 }
 
 func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
-	payload := []byte(fmt.Sprintf(decodeProgramPayload, program))
+	payload := []byte(fmt.Sprintf(decodeProgramReq, program))
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
