@@ -30,6 +30,9 @@ func init() {
 
 	// call contract arguments
 	callCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+
+	// cancel contract arguments
+	cancelCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
 }
 
 var (
@@ -127,6 +130,37 @@ var callCmd = &cobra.Command{
 		}
 
 		txID, err := swap.CallContract(accountInfo, contractUTXOID)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+		fmt.Println("--> txID:", txID)
+	},
+}
+
+var cancelCmd = &cobra.Command{
+	Use:   "cancel <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag]",
+	Short: "cancel tradeoff contract for asset swapping",
+	Args:  cobra.ExactArgs(4),
+	Run: func(cmd *cobra.Command, args []string) {
+		accountInfo := swap.AccountInfo{
+			AccountID: args[0],
+			Password:  args[1],
+			Receiver:  args[2],
+			TxFee:     txFee,
+		}
+		if len(accountInfo.AccountID) == 0 || len(accountInfo.Password) == 0 || len(accountInfo.Receiver) == 0 {
+			fmt.Println("The part field of the structure AccountInfo is empty:", accountInfo)
+			os.Exit(0)
+		}
+
+		contractUTXOID := args[3]
+		if len(contractUTXOID) == 0 {
+			fmt.Println("contract utxoID is empty:", contractUTXOID)
+			os.Exit(0)
+		}
+
+		txID, err := swap.CancelTradeoffContract(accountInfo, contractUTXOID)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)

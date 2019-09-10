@@ -20,6 +20,7 @@ var swapCmd = &cobra.Command{
 func main() {
 	swapCmd.AddCommand(deployCmd)
 	swapCmd.AddCommand(callCmd)
+	swapCmd.AddCommand(cancelCmd)
 	swapCmd.AddCommand(deployHTLCCmd)
 	swapCmd.AddCommand(callHTLCCmd)
 	if err := swapCmd.Execute(); err != nil {
