@@ -1,6 +1,7 @@
 package swap
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -343,14 +344,9 @@ func parseUint64(s string) (uint64, error) {
 		return 0, err
 	}
 
-	for i := 0; i < len(data)/2; i++ {
-		data[i], data[len(data)-1-i] = data[len(data)-1-i], data[i]
-	}
-	s = hex.EncodeToString(data)
-	num, err := strconv.ParseUint(s, 16, 64)
-	if err != nil {
-		return 0, err
-	}
+	var padded [8]byte
+	copy(padded[:], data)
+	num := binary.LittleEndian.Uint64(padded[:])
 
 	return num, nil
 }
