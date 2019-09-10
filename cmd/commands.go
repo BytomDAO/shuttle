@@ -126,29 +126,7 @@ var callCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		program, contractValue, err := swap.ListUnspentOutputs(contractUTXOID)
-		if err != nil {
-			fmt.Println("list unspent outputs err:", err)
-			os.Exit(0)
-		}
-
-		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
-			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
-			os.Exit(0)
-		}
-
-		contractArgs, err := swap.DecodeProgram(program)
-		if err != nil {
-			fmt.Println("decode program err:", err)
-			os.Exit(0)
-		}
-
-		if len(contractArgs.Asset) == 0 || contractArgs.Amount == uint64(0) || len(contractArgs.Seller) == 0 {
-			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
-			os.Exit(0)
-		}
-
-		txID, err := swap.CallContract(accountInfo, contractUTXOID, *contractArgs, *contractValue)
+		txID, err := swap.CallContract(accountInfo, contractUTXOID)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)

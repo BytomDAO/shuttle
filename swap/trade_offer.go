@@ -231,7 +231,17 @@ var buildUnlockContractTxReq = `{
 }`
 
 // buildUnlockContractTransaction build unlocked contract transaction.
-func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
+func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string) (interface{}, error) {
+	program, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	if err != nil {
+		return "", err
+	}
+
+	contractArgs, err := DecodeProgram(program)
+	if err != nil {
+		return "", err
+	}
+
 	payload := []byte(fmt.Sprintf(buildUnlockContractTxReq,
 		contractUTXOID,
 		contractArgs.Amount,
@@ -375,9 +385,9 @@ func DeployContract(accountInfo AccountInfo, contractArgs ContractArgs, contract
 }
 
 // CallContract call contract.
-func CallContract(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
+func CallContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
 	// build unlocked contract transaction
-	txUnlocked, err := buildUnlockContractTransaction(accountInfo, contractUTXOID, contractArgs, contractValue)
+	txUnlocked, err := buildUnlockContractTransaction(accountInfo, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
