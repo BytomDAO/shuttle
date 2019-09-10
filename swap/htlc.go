@@ -24,11 +24,11 @@ type HTLCContractArgs struct {
 	Hash               string
 }
 
-type compileLockHTLCContractResponse struct {
+type compileLockHTLCContractResp struct {
 	Program string `json:"program"`
 }
 
-var compileLockHTLCContractPayload = `{
+var compileLockHTLCContractReq = `{
     "contract":"contract HTLC(sender: PublicKey, recipient: PublicKey, blockHeight: Integer, hash: Hash) locks valueAmount of valueAsset { clause complete(preimage: String, sig: Signature) {verify sha256(preimage) == hash verify checkTxSig(recipient, sig) unlock valueAmount of valueAsset} clause cancel(sig: Signature) {verify above(blockHeight) verify checkTxSig(sender, sig) unlock valueAmount of valueAsset}}",
     "args":[
         {
@@ -48,20 +48,20 @@ var compileLockHTLCContractPayload = `{
 
 func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(
-		compileLockHTLCContractPayload,
+		compileLockHTLCContractReq,
 		contractArgs.SenderPublicKey,
 		contractArgs.RecipientPublicKey,
 		strconv.FormatUint(contractArgs.BlockHeight, 10),
 		contractArgs.Hash,
 	))
-	res := new(compileLockHTLCContractResponse)
+	res := new(compileLockHTLCContractResp)
 	if err := request(compileURL, payload, res); err != nil {
 		return "", err
 	}
 	return res.Program, nil
 }
 
-var buildLockHTLCContractTransactionPayload = `{
+var buildLockHTLCContractTxReq = `{
     "actions": [
         {
             "account_id": "%s",
@@ -90,7 +90,7 @@ var buildLockHTLCContractTransactionPayload = `{
 
 func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(
-		buildLockHTLCContractTransactionPayload,
+		buildLockHTLCContractTxReq,
 		account.AccountID,
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
@@ -107,14 +107,14 @@ func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAm
 	return res, nil
 }
 
-type buildUnlockHTLCContractTransactionResponse struct {
+type buildUnlockHTLCContractTxResp struct {
 	RawTransaction         string        `json:"raw_transaction"`
 	SigningInstructions    []interface{} `json:"signing_instructions"`
 	TxFee                  uint64        `json:"fee"`
 	AllowAdditionalActions bool          `json:"allow_additional_actions"`
 }
 
-var buildUnlockHTLCContractTransactionPayload = `{
+var buildUnlockHTLCContractTxReq = `{
     "actions": [
         {
             "type": "spend_account_unspent_output",
@@ -140,9 +140,9 @@ var buildUnlockHTLCContractTransactionPayload = `{
     "base_transaction": null
 }`
 
-func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTransactionResponse, error) {
+func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTxResp, error) {
 	payload := []byte(fmt.Sprintf(
-		buildUnlockHTLCContractTransactionPayload,
+		buildUnlockHTLCContractTxReq,
 		contractUTXOID,
 		account.AccountID,
 		strconv.FormatUint(account.TxFee, 10),
@@ -150,7 +150,7 @@ func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID stri
 		contractValue.Asset,
 		account.Receiver,
 	))
-	res := new(buildUnlockHTLCContractTransactionResponse)
+	res := new(buildUnlockHTLCContractTxResp)
 	if err := request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
 	}
@@ -163,20 +163,20 @@ type TransactionInput struct {
 	SignData       string `json:"sign_data"`
 }
 
-type decodeRawTransactionResponse struct {
+type decodeRawTxResp struct {
 	TransactionInputs []TransactionInput `json:"inputs"`
 }
 
-var decodeRawTransactionPayload = `{
+var decodeRawTxReq = `{
 	"raw_transaction":"%s"
 }`
 
 func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (string, string, error) {
 	payload := []byte(fmt.Sprintf(
-		decodeRawTransactionPayload,
+		decodeRawTxReq,
 		rawTransaction,
 	))
-	res := new(decodeRawTransactionResponse)
+	res := new(decodeRawTxResp)
 	if err := request(decodeRawTransactionURL, payload, res); err != nil {
 		return "", "", err
 	}
@@ -194,7 +194,7 @@ func getRecipientPublicKey(contractControlProgram string) (string, error) {
 		decodeProgramPayload,
 		contractControlProgram,
 	))
-	res := new(decodeProgramResponse)
+	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return "", err
 	}
@@ -258,37 +258,32 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 	return "", errFailedGetAddress
 }
 
-var signMessagePayload = `{
+var signMessageReq = `{
     "address": "%s",
     "message": "%s",
     "password": "%s"
 }`
 
-type signMessageResponse struct {
+type signMessageResp struct {
 	Signature   string `json:"signature"`
 	DerivedXPub string `json:"derived_xpub"`
 }
 
 func signMessage(address, message, password string) (string, error) {
 	payload := []byte(fmt.Sprintf(
-		signMessagePayload,
+		signMessageReq,
 		address,
 		message,
 		password,
 	))
-	res := new(signMessageResponse)
+	res := new(signMessageResp)
 	if err := request(signMessageURl, payload, res); err != nil {
 		return "", nil
 	}
 	return res.Signature, nil
 }
 
-type signUnlockHTLCContractTransactionRequest struct {
-	Password    string                                     `json:"password"`
-	Transaction buildUnlockHTLCContractTransactionResponse `json:"transaction"`
-}
-
-var signUnlockHTLCContractTransactionPayload = `{
+var signUnlockHTLCContractTxReq = `{
     "password": "%s",
     "transaction": {
         "raw_transaction": "%s",
@@ -319,7 +314,7 @@ var signUnlockHTLCContractTransactionPayload = `{
 
 func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
 	payload := []byte(fmt.Sprintf(
-		signUnlockHTLCContractTransactionPayload,
+		signUnlockHTLCContractTxReq,
 		account.Password,
 		rawTransaction,
 		preimage,
@@ -327,7 +322,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 		signingInst,
 		strconv.FormatUint(account.TxFee, 10),
 	))
-	res := new(signTransactionResponse)
+	res := new(signTxResp)
 	if err := request(signTransactionURL, payload, res); err != nil {
 		return "", err
 	}
@@ -340,7 +335,7 @@ func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 		decodeProgramPayload,
 		program,
 	))
-	res := new(decodeProgramResponse)
+	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
 	}

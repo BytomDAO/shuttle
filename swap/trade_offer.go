@@ -33,11 +33,11 @@ type ContractArgs struct {
 	CancelKey string
 }
 
-type compileLockContractResponse struct {
+type compileLockContractResp struct {
 	Program string `json:"program"`
 }
 
-var compileLockContractPayload = `{
+var compileLockContractReq = `{
 	"contract":"contract TradeOffer(assetRequested: Asset, amountRequested: Amount, seller: Program, cancelKey: PublicKey) locks valueAmount of valueAsset { clause trade() { lock amountRequested of assetRequested with seller unlock valueAmount of valueAsset } clause cancel(sellerSig: Signature) { verify checkTxSig(cancelKey, sellerSig) unlock valueAmount of valueAsset}}",
 	"args":[
 		{
@@ -58,20 +58,20 @@ var compileLockContractPayload = `{
 // compileLockContract return contract control program
 func compileLockContract(contractArgs ContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(
-		compileLockContractPayload,
+		compileLockContractReq,
 		contractArgs.Asset,
 		strconv.FormatUint(contractArgs.Amount, 10),
 		contractArgs.Seller,
 		contractArgs.CancelKey,
 	))
-	res := new(compileLockContractResponse)
+	res := new(compileLockContractResp)
 	if err := request(compileURL, payload, res); err != nil {
 		return "", err
 	}
 	return res.Program, nil
 }
 
-var buildLockTransactionPayload = `{
+var buildLockTxReq = `{
 	"actions":[
 		{
 			"account_id":"%s",
@@ -101,7 +101,7 @@ var buildLockTransactionPayload = `{
 // buildLockTransaction build locked contract transaction.
 func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(
-		buildLockTransactionPayload,
+		buildLockTxReq,
 		accountInfo.AccountID,
 		strconv.FormatUint(contractValue.Amount, 10),
 		contractValue.Asset,
@@ -118,7 +118,7 @@ func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, co
 	return res, nil
 }
 
-type signTransactionRequest struct {
+type signTxReq struct {
 	Password    string      `json:"password"`
 	Transaction interface{} `json:"transaction"`
 }
@@ -127,18 +127,18 @@ type Transaction struct {
 	RawTransaction string `json:"raw_transaction"`
 }
 
-type signTransactionResponse struct {
+type signTxResp struct {
 	Tx Transaction `json:"transaction"`
 }
 
 // signTransaction sign built contract transaction.
 func signTransaction(password string, transaction interface{}) (string, error) {
-	payload, err := json.Marshal(signTransactionRequest{Password: password, Transaction: transaction})
+	payload, err := json.Marshal(signTxReq{Password: password, Transaction: transaction})
 	if err != nil {
 		return "", err
 	}
 
-	res := new(signTransactionResponse)
+	res := new(signTxResp)
 	if err := request(signTransactionURL, payload, res); err != nil {
 		return "", err
 	}
@@ -146,22 +146,22 @@ func signTransaction(password string, transaction interface{}) (string, error) {
 	return res.Tx.RawTransaction, nil
 }
 
-type submitTransactionRequest struct {
+type submitTxReq struct {
 	RawTransaction string `json:"raw_transaction"`
 }
 
-type submitTransactionResponse struct {
+type submitTxResp struct {
 	TransactionID string `json:"tx_id"`
 }
 
 // submitTransaction submit raw singed contract transaction.
 func submitTransaction(rawTransaction string) (string, error) {
-	payload, err := json.Marshal(submitTransactionRequest{RawTransaction: rawTransaction})
+	payload, err := json.Marshal(submitTxReq{RawTransaction: rawTransaction})
 	if err != nil {
 		return "", err
 	}
 
-	res := new(submitTransactionResponse)
+	res := new(submitTxResp)
 	if err := request(submitTransactionURL, payload, res); err != nil {
 		return "", err
 	}
@@ -169,7 +169,7 @@ func submitTransaction(rawTransaction string) (string, error) {
 	return res.TransactionID, nil
 }
 
-type getContractUTXOIDRequest struct {
+type getContractUTXOIDReq struct {
 	TransactionID string `json:"tx_id"`
 }
 
@@ -178,18 +178,18 @@ type TransactionOutput struct {
 	ControlProgram      string `json:"control_program"`
 }
 
-type getContractUTXOIDResponse struct {
+type getContractUTXOIDResp struct {
 	TransactionOutputs []TransactionOutput `json:"outputs"`
 }
 
 // getContractUTXOID get contract UTXO ID by transaction ID and contract control program.
 func getContractUTXOID(transactionID, controlProgram string) (string, error) {
-	payload, err := json.Marshal(getContractUTXOIDRequest{TransactionID: transactionID})
+	payload, err := json.Marshal(getContractUTXOIDReq{TransactionID: transactionID})
 	if err != nil {
 		return "", err
 	}
 
-	res := new(getContractUTXOIDResponse)
+	res := new(getContractUTXOIDResp)
 	if err := request(getTransactionURL, payload, res); err != nil {
 		return "", err
 	}
@@ -203,7 +203,7 @@ func getContractUTXOID(transactionID, controlProgram string) (string, error) {
 	return "", errFailedGetContractUTXOID
 }
 
-var buildUnlockContractTransactionPayload = `{
+var buildUnlockContractTxReq = `{
 	"actions":[
 		{
 			"type":"spend_account_unspent_output",
@@ -252,7 +252,7 @@ var buildUnlockContractTransactionPayload = `{
 // buildUnlockContractTransaction build unlocked contract transaction.
 func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string, contractArgs ContractArgs, contractValue AssetAmount) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(
-		buildUnlockContractTransactionPayload,
+		buildUnlockContractTxReq,
 		contractUTXOID,
 		strconv.FormatUint(contractArgs.Amount, 10),
 		contractArgs.Asset,
@@ -273,13 +273,13 @@ func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID stri
 	return res, nil
 }
 
-type listUnspentOutputsResponse struct {
+type listUnspentOutputsResp struct {
 	AssetID     string `json:"asset_id"`
 	AssetAmount uint64 `json:"amount"`
 	Program     string `json:"program"`
 }
 
-var listUnspentOutputsPayload = `{
+var listUnspentOutputsReq = `{
 	"id": "%s",
 	"unconfirmed": true,
 	"smart_contract": true
@@ -287,10 +287,10 @@ var listUnspentOutputsPayload = `{
 
 func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 	payload := []byte(fmt.Sprintf(
-		listUnspentOutputsPayload,
+		listUnspentOutputsReq,
 		contractUTXOID,
 	))
-	var res []listUnspentOutputsResponse
+	var res []listUnspentOutputsResp
 	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
 	}
@@ -304,7 +304,7 @@ func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 	return "", nil, errListUnspentOutputs
 }
 
-type decodeProgramResponse struct {
+type decodeProgramResp struct {
 	Instructions string `json:"instructions"`
 }
 
@@ -317,7 +317,7 @@ func DecodeProgram(program string) (*ContractArgs, error) {
 		decodeProgramPayload,
 		program,
 	))
-	res := new(decodeProgramResponse)
+	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
 	}
