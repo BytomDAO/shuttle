@@ -189,7 +189,11 @@ func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (str
 }
 
 func getRecipientPublicKey(contractControlProgram string) (string, error) {
-	payload := []byte(fmt.Sprintf(decodeProgramReq, contractControlProgram))
+	payload, err := json.Marshal(decodeProgramReq{Program: contractControlProgram})
+	if err != nil {
+		return "", err
+	}
+
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return "", err
@@ -329,7 +333,11 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 }
 
 func DecodeHTLCProgram(program string) (*HTLCContractArgs, error) {
-	payload := []byte(fmt.Sprintf(decodeProgramReq, program))
+	payload, err := json.Marshal(decodeProgramReq{Program: program})
+	if err != nil {
+		return nil, err
+	}
+
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err

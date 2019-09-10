@@ -294,12 +294,16 @@ type decodeProgramResp struct {
 	Instructions string `json:"instructions"`
 }
 
-var decodeProgramReq = `{
-	"program": "%s"
-}`
+type decodeProgramReq struct {
+	Program string `json:"program"`
+}
 
 func DecodeProgram(program string) (*ContractArgs, error) {
-	payload := []byte(fmt.Sprintf(decodeProgramReq, program))
+	payload, err := json.Marshal(decodeProgramReq{Program: program})
+	if err != nil {
+		return nil, err
+	}
+
 	res := new(decodeProgramResp)
 	if err := request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
