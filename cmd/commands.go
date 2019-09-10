@@ -202,7 +202,7 @@ var deployHTLCCmd = &cobra.Command{
 }
 
 var callHTLCCmd = &cobra.Command{
-	Use:   "callHTLC <accountID> <password> <buyer-program> <contractUTXOID> <preimage> [txFee flag]",
+	Use:   "callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag]",
 	Short: "callHTLC HTLC contract for asset swapping",
 	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -217,7 +217,7 @@ var callHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		contractUTXOID := args[3]
+		contractUTXOID := args[4]
 		if len(contractUTXOID) == 0 {
 			fmt.Println("contract utxoID is empty:", contractUTXOID)
 			os.Exit(0)
@@ -245,7 +245,7 @@ var callHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		preimage := args[4]
+		preimage := args[3]
 		txID, err := swap.CallHTLCContract(account, contractUTXOID, preimage, *contractArgs, *contractValue)
 		if err != nil {
 			fmt.Println(err)
