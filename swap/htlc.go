@@ -328,6 +328,10 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 		return "", err
 	}
 
+	if !res.SignComplete {
+		return "", errFailedSignTx
+	}
+
 	return res.Tx.RawTransaction, nil
 }
 

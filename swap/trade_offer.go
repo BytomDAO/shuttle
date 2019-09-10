@@ -14,6 +14,7 @@ var (
 	errMarshal                   = errors.New("Failed to marshal")
 	errListUnspentOutputs        = errors.New("Failed to list unspent outputs")
 	errTradeOffParametersInvalid = errors.New("Trade off parameters invalid")
+	errFailedSignTx              = errors.New("Failed to sign transaction")
 )
 
 type compileLockContractResp struct {
@@ -109,7 +110,8 @@ type Transaction struct {
 }
 
 type signTxResp struct {
-	Tx Transaction `json:"transaction"`
+	Tx           Transaction `json:"transaction"`
+	SignComplete bool        `json:"sign_complete"`
 }
 
 // signTransaction sign built contract transaction.
@@ -122,6 +124,10 @@ func signTransaction(password string, transaction interface{}) (string, error) {
 	res := new(signTxResp)
 	if err := request(signTransactionURL, payload, res); err != nil {
 		return "", err
+	}
+
+	if !res.SignComplete {
+		return "", errFailedSignTx
 	}
 
 	return res.Tx.RawTransaction, nil
