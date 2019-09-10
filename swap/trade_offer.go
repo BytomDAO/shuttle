@@ -16,24 +16,6 @@ var (
 	errListUnspentOutputs      = errors.New("Failed to list unspent outputs")
 )
 
-type AccountInfo struct {
-	AccountID string
-	Password  string
-	Receiver  string
-	TxFee     uint64
-}
-
-type AssetAmount struct {
-	Asset  string
-	Amount uint64
-}
-
-type ContractArgs struct {
-	AssetAmount
-	Seller    string
-	CancelKey string
-}
-
 type compileLockContractResp struct {
 	Program string `json:"program"`
 }
