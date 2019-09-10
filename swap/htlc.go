@@ -65,20 +65,20 @@ var buildLockHTLCContractTxReq = `{
     "actions": [
         {
             "account_id": "%s",
-            "amount": %s,
+            "amount": %d,
             "asset_id": "%s",
             "use_unconfirmed":true,
             "type": "spend_account"
         },
         {
-            "amount": %s,
+            "amount": %d,
             "asset_id": "%s",
             "control_program": "%s",
             "type": "control_program"
         },
         {
             "account_id": "%s",
-            "amount": %s,
+            "amount": %d,
             "asset_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
             "use_unconfirmed":true,
             "type": "spend_account"
@@ -91,13 +91,13 @@ var buildLockHTLCContractTxReq = `{
 func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(buildLockHTLCContractTxReq,
 		account.AccountID,
-		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Amount,
 		contractValue.Asset,
-		strconv.FormatUint(contractValue.Amount, 10),
+		contractValue.Amount,
 		contractValue.Asset,
 		contractControlProgram,
 		account.AccountID,
-		strconv.FormatUint(account.TxFee, 10),
+		account.TxFee,
 	))
 	res := new(interface{})
 	if err := request(buildTransactionURL, payload, res); err != nil {
