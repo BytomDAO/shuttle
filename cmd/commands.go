@@ -201,30 +201,8 @@ var callHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		program, contractValue, err := swap.ListUnspentOutputs(contractUTXOID)
-		if err != nil {
-			fmt.Println("list unspent outputs err:", err)
-			os.Exit(0)
-		}
-
-		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
-			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
-			os.Exit(0)
-		}
-
-		contractArgs, err := swap.DecodeHTLCProgram(program)
-		if err != nil {
-			fmt.Println("decode program err:", err)
-			os.Exit(0)
-		}
-
-		if len(contractArgs.Hash) == 0 || len(contractArgs.RecipientPublicKey) == 0 || len(contractArgs.SenderPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) {
-			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
-			os.Exit(0)
-		}
-
 		preimage := args[3]
-		txID, err := swap.CallHTLCContract(account, contractUTXOID, preimage, *contractArgs, *contractValue)
+		txID, err := swap.CallHTLCContract(account, contractUTXOID, preimage)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)

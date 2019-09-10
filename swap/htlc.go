@@ -395,9 +395,14 @@ func DeployHTLCContract(account AccountInfo, contractValue AssetAmount, contract
 }
 
 // CallHTLCContract call HTLC contract.
-func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string, contractArgs HTLCContractArgs, contractValue AssetAmount) (string, error) {
+func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string) (string, error) {
+	_, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	if err != nil {
+		return "", err
+	}
+
 	// build unlocked contract transaction
-	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, contractValue)
+	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, *contractValue)
 	if err != nil {
 		return "", err
 	}
@@ -407,7 +412,7 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string, cont
 		fmt.Println(err)
 	}
 
-	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, contractValue)
+	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, *contractValue)
 	if err != nil {
 		fmt.Println(err)
 	}
