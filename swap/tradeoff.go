@@ -144,7 +144,6 @@ type submitTxResp struct {
 
 // submitTransaction submit raw singed contract transaction.
 func submitTransaction(s *Server, rawTransaction string) (string, error) {
-	fmt.Println("raw transaction:", rawTransaction)
 	payload, err := json.Marshal(submitTxReq{RawTransaction: rawTransaction})
 	if err != nil {
 		return "", err
