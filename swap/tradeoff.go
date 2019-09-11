@@ -41,7 +41,7 @@ var compileLockContractReq = `{
 }`
 
 // compileLockContract return contract control program
-func compileLockContract(contractArgs ContractArgs) (string, error) {
+func compileLockContract(s *Server, contractArgs ContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(compileLockContractReq,
 		contractArgs.Asset,
 		contractArgs.Amount,
@@ -49,7 +49,7 @@ func compileLockContract(contractArgs ContractArgs) (string, error) {
 		contractArgs.CancelKey,
 	))
 	res := new(compileLockContractResp)
-	if err := request(compileURL, payload, res); err != nil {
+	if err := s.request(compileURL, payload, res); err != nil {
 		return "", err
 	}
 	return res.Program, nil
@@ -83,7 +83,7 @@ var buildLockTxReq = `{
 }`
 
 // buildLockTransaction build locked contract transaction.
-func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
+func buildLockTransaction(s *Server, accountInfo AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(buildLockTxReq,
 		accountInfo.AccountID,
 		contractValue.Amount,
@@ -95,7 +95,7 @@ func buildLockTransaction(accountInfo AccountInfo, contractValue AssetAmount, co
 		accountInfo.TxFee,
 	))
 	res := new(interface{})
-	if err := request(buildTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 	return res, nil
@@ -116,14 +116,14 @@ type signTxResp struct {
 }
 
 // signTransaction sign built contract transaction.
-func signTransaction(password string, transaction interface{}) (string, error) {
+func signTransaction(s *Server, password string, transaction interface{}) (string, error) {
 	payload, err := json.Marshal(signTxReq{Password: password, Transaction: transaction})
 	if err != nil {
 		return "", err
 	}
 
 	res := new(signTxResp)
-	if err := request(signTransactionURL, payload, res); err != nil {
+	if err := s.request(signTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 
@@ -143,14 +143,15 @@ type submitTxResp struct {
 }
 
 // submitTransaction submit raw singed contract transaction.
-func submitTransaction(rawTransaction string) (string, error) {
+func submitTransaction(s *Server, rawTransaction string) (string, error) {
+	fmt.Println("raw transaction:", rawTransaction)
 	payload, err := json.Marshal(submitTxReq{RawTransaction: rawTransaction})
 	if err != nil {
 		return "", err
 	}
 
 	res := new(submitTxResp)
-	if err := request(submitTransactionURL, payload, res); err != nil {
+	if err := s.request(submitTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 
@@ -171,14 +172,14 @@ type getContractUTXOIDResp struct {
 }
 
 // getContractUTXOID get contract UTXO ID by transaction ID and contract control program.
-func getContractUTXOID(transactionID, controlProgram string) (string, error) {
+func getContractUTXOID(s *Server, transactionID, controlProgram string) (string, error) {
 	payload, err := json.Marshal(getContractUTXOIDReq{TransactionID: transactionID})
 	if err != nil {
 		return "", err
 	}
 
 	res := new(getContractUTXOIDResp)
-	if err := request(getTransactionURL, payload, res); err != nil {
+	if err := s.request(getTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 
@@ -238,13 +239,13 @@ var buildUnlockContractTxReq = `{
 }`
 
 // buildUnlockContractTransaction build unlocked contract transaction.
-func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID string) (interface{}, error) {
-	program, contractValue, err := ListUnspentOutputs(contractUTXOID)
+func buildUnlockContractTransaction(s *Server, accountInfo AccountInfo, contractUTXOID string) (interface{}, error) {
+	program, contractValue, err := ListUnspentOutputs(s, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
 
-	contractArgs, err := decodeProgram(program)
+	contractArgs, err := decodeProgram(s, program)
 	if err != nil {
 		return "", err
 	}
@@ -264,7 +265,7 @@ func buildUnlockContractTransaction(accountInfo AccountInfo, contractUTXOID stri
 		accountInfo.Receiver,
 	))
 	res := new(interface{})
-	if err := request(buildTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 	return res, nil
@@ -282,7 +283,7 @@ type listUnspentOutputsReq struct {
 	SmartContract bool   `json:"smart_contract"`
 }
 
-func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
+func ListUnspentOutputs(s *Server, contractUTXOID string) (string, *AssetAmount, error) {
 	payload, err := json.Marshal(listUnspentOutputsReq{
 		UTXOID:        contractUTXOID,
 		Unconfirmed:   true,
@@ -293,7 +294,7 @@ func ListUnspentOutputs(contractUTXOID string) (string, *AssetAmount, error) {
 	}
 
 	var res []listUnspentOutputsResp
-	if err := request(listUnspentOutputsURL, payload, &res); err != nil {
+	if err := s.request(listUnspentOutputsURL, payload, &res); err != nil {
 		return "", nil, err
 	}
 
@@ -315,14 +316,14 @@ type decodeProgramReq struct {
 	Program string `json:"program"`
 }
 
-func decodeProgram(program string) (*ContractArgs, error) {
+func decodeProgram(s *Server, program string) (*ContractArgs, error) {
 	payload, err := json.Marshal(decodeProgramReq{Program: program})
 	if err != nil {
 		return nil, err
 	}
 
 	res := new(decodeProgramResp)
-	if err := request(decodeProgramURL, payload, res); err != nil {
+	if err := s.request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
 	}
 
@@ -376,14 +377,14 @@ type XPubKeyInfo struct {
 	DerivationPath []string `json:"derivation_path"`
 }
 
-func getXPubKeyInfo(accountID, publicKey string) (*XPubKeyInfo, error) {
+func getXPubKeyInfo(s *Server, accountID, publicKey string) (*XPubKeyInfo, error) {
 	payload, err := json.Marshal(listPublicKeysReq{AccountID: accountID})
 	if err != nil {
 		return nil, err
 	}
 
 	res := new(listPublicKeysResp)
-	if err := request(listPubkeysURL, payload, res); err != nil {
+	if err := s.request(listPubkeysURL, payload, res); err != nil {
 		return nil, err
 	}
 
@@ -435,7 +436,7 @@ var buildCancelContractTxReq = `{
     "base_transaction": null
 }`
 
-func buildCancelContractTransaction(accountInfo AccountInfo, contractUTXOID string, xpubKeyInfo *XPubKeyInfo, contractValue *AssetAmount) (interface{}, error) {
+func buildCancelContractTransaction(s *Server, accountInfo AccountInfo, contractUTXOID string, xpubKeyInfo *XPubKeyInfo, contractValue *AssetAmount) (interface{}, error) {
 	xpubKeyInfoStr, err := json.Marshal(xpubKeyInfo)
 	if err != nil {
 		return "", err
@@ -450,40 +451,40 @@ func buildCancelContractTransaction(accountInfo AccountInfo, contractUTXOID stri
 		accountInfo.Receiver,
 	))
 	res := new(interface{})
-	if err := request(buildTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 	return res, nil
 }
 
 // DeployContract deploy contract.
-func DeployContract(accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
+func DeployContract(s *Server, accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
 	// compile locked contract
-	contractControlProgram, err := compileLockContract(contractArgs)
+	contractControlProgram, err := compileLockContract(s, contractArgs)
 	if err != nil {
 		return "", err
 	}
 
 	// build locked contract
-	txLocked, err := buildLockTransaction(accountInfo, contractValue, contractControlProgram)
+	txLocked, err := buildLockTransaction(s, accountInfo, contractValue, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// sign locked contract transaction
-	signedTransaction, err := signTransaction(accountInfo.Password, txLocked)
+	signedTransaction, err := signTransaction(s, accountInfo.Password, txLocked)
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed transaction
-	txID, err := submitTransaction(signedTransaction)
+	txID, err := submitTransaction(s, signedTransaction)
 	if err != nil {
 		return "", err
 	}
 
 	// get contract output ID
-	contractUTXOID, err := getContractUTXOID(txID, contractControlProgram)
+	contractUTXOID, err := getContractUTXOID(s, txID, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
@@ -491,21 +492,21 @@ func DeployContract(accountInfo AccountInfo, contractArgs ContractArgs, contract
 }
 
 // CallContract call contract.
-func CallContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
+func CallContract(s *Server, accountInfo AccountInfo, contractUTXOID string) (string, error) {
 	// build unlocked contract transaction
-	txUnlocked, err := buildUnlockContractTransaction(accountInfo, contractUTXOID)
+	txUnlocked, err := buildUnlockContractTransaction(s, accountInfo, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
 
 	// sign unlocked contract transaction
-	signedTransaction, err := signTransaction(accountInfo.Password, txUnlocked)
+	signedTransaction, err := signTransaction(s, accountInfo.Password, txUnlocked)
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed unlocked contract transaction
-	txID, err := submitTransaction(signedTransaction)
+	txID, err := submitTransaction(s, signedTransaction)
 	if err != nil {
 		return "", err
 	}
@@ -513,39 +514,40 @@ func CallContract(accountInfo AccountInfo, contractUTXOID string) (string, error
 	return txID, nil
 }
 
-func CancelTradeoffContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
+// CancelTradeoffContract cancel tradeoff contract.
+func CancelTradeoffContract(s *Server, accountInfo AccountInfo, contractUTXOID string) (string, error) {
 	// get contract control program by contract UTXOID
-	contractControlProgram, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	contractControlProgram, contractValue, err := ListUnspentOutputs(s, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
 
 	// get public key by contract control program
-	contractArgs, err := decodeProgram(contractControlProgram)
+	contractArgs, err := decodeProgram(s, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// get public key path and root xpub by contract args
-	xpubInfo, err := getXPubKeyInfo(accountInfo.AccountID, contractArgs.CancelKey)
+	xpubInfo, err := getXPubKeyInfo(s, accountInfo.AccountID, contractArgs.CancelKey)
 	if err != nil {
 		return "", err
 	}
 
 	// build cancel contract transaction
-	builtTx, err := buildCancelContractTransaction(accountInfo, contractUTXOID, xpubInfo, contractValue)
+	builtTx, err := buildCancelContractTransaction(s, accountInfo, contractUTXOID, xpubInfo, contractValue)
 	if err != nil {
 		return "", err
 	}
 
 	// sign cancel contract transaction
-	signedTx, err := signTransaction(accountInfo.Password, builtTx)
+	signedTx, err := signTransaction(s, accountInfo.Password, builtTx)
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed unlocked contract transaction
-	txID, err := submitTransaction(signedTx)
+	txID, err := submitTransaction(s, signedTx)
 	if err != nil {
 		return "", err
 	}

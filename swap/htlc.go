@@ -46,7 +46,7 @@ var compileLockHTLCContractReq = `{
     ]
 }`
 
-func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
+func compileLockHTLCContract(s *Server, contractArgs HTLCContractArgs) (string, error) {
 	payload := []byte(fmt.Sprintf(compileLockHTLCContractReq,
 		contractArgs.SenderPublicKey,
 		contractArgs.RecipientPublicKey,
@@ -54,7 +54,7 @@ func compileLockHTLCContract(contractArgs HTLCContractArgs) (string, error) {
 		contractArgs.Hash,
 	))
 	res := new(compileLockHTLCContractResp)
-	if err := request(compileURL, payload, res); err != nil {
+	if err := s.request(compileURL, payload, res); err != nil {
 		return "", err
 	}
 	return res.Program, nil
@@ -87,7 +87,7 @@ var buildLockHTLCContractTxReq = `{
     "base_transaction": null
 }`
 
-func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
+func buildLockHTLCContractTransaction(s *Server, account AccountInfo, contractValue AssetAmount, contractControlProgram string) (interface{}, error) {
 	payload := []byte(fmt.Sprintf(buildLockHTLCContractTxReq,
 		account.AccountID,
 		contractValue.Amount,
@@ -99,7 +99,7 @@ func buildLockHTLCContractTransaction(account AccountInfo, contractValue AssetAm
 		account.TxFee,
 	))
 	res := new(interface{})
-	if err := request(buildTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 	return res, nil
@@ -138,7 +138,7 @@ var buildUnlockHTLCContractTxReq = `{
     "base_transaction": null
 }`
 
-func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTxResp, error) {
+func buildUnlockHTLCContractTransaction(s *Server, account AccountInfo, contractUTXOID string, contractValue AssetAmount) (*buildUnlockHTLCContractTxResp, error) {
 	payload := []byte(fmt.Sprintf(buildUnlockHTLCContractTxReq,
 		contractUTXOID,
 		account.AccountID,
@@ -148,7 +148,7 @@ func buildUnlockHTLCContractTransaction(account AccountInfo, contractUTXOID stri
 		account.Receiver,
 	))
 	res := new(buildUnlockHTLCContractTxResp)
-	if err := request(buildTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -168,14 +168,14 @@ type decodeRawTxReq struct {
 	RawTx string `json:"raw_transaction"`
 }
 
-func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (string, string, error) {
+func decodeRawTransaction(s *Server, rawTransaction string, contractValue AssetAmount) (string, string, error) {
 	payload, err := json.Marshal(decodeRawTxReq{RawTx: rawTransaction})
 	if err != nil {
 		return "", "", err
 	}
 
 	res := new(decodeRawTxResp)
-	if err := request(decodeRawTransactionURL, payload, res); err != nil {
+	if err := s.request(decodeRawTransactionURL, payload, res); err != nil {
 		return "", "", err
 	}
 
@@ -187,14 +187,14 @@ func decodeRawTransaction(rawTransaction string, contractValue AssetAmount) (str
 	return "", "", errFailedGetSignData
 }
 
-func getRecipientPublicKey(contractControlProgram string) (string, error) {
+func getRecipientPublicKey(s *Server, contractControlProgram string) (string, error) {
 	payload, err := json.Marshal(decodeProgramReq{Program: contractControlProgram})
 	if err != nil {
 		return "", err
 	}
 
 	res := new(decodeProgramResp)
-	if err := request(decodeProgramURL, payload, res); err != nil {
+	if err := s.request(decodeProgramURL, payload, res); err != nil {
 		return "", err
 	}
 
@@ -213,22 +213,22 @@ type listAddressesReq struct {
 	AccountID string `json:"account_id"`
 }
 
-func listAddresses(accountID string) ([]AddressInfo, error) {
+func listAddresses(s *Server, accountID string) ([]AddressInfo, error) {
 	payload, err := json.Marshal(listAddressesReq{AccountID: accountID})
 	if err != nil {
 		return nil, err
 	}
 
 	res := new([]AddressInfo)
-	if err := request(listAddressesURL, payload, res); err != nil {
+	if err := s.request(listAddressesURL, payload, res); err != nil {
 		return nil, err
 	}
 
 	return *res, nil
 }
 
-func getAddress(accountID, contractControlProgram string) (string, error) {
-	publicKey, err := getRecipientPublicKey(contractControlProgram)
+func getAddress(s *Server, accountID, contractControlProgram string) (string, error) {
+	publicKey, err := getRecipientPublicKey(s, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
@@ -244,7 +244,7 @@ func getAddress(accountID, contractControlProgram string) (string, error) {
 		return "", err
 	}
 
-	addressInfos, err := listAddresses(accountID)
+	addressInfos, err := listAddresses(s, accountID)
 	if err != nil {
 		return "", err
 	}
@@ -268,7 +268,7 @@ type signMessageResp struct {
 	DerivedXPub string `json:"derived_xpub"`
 }
 
-func signMessage(address, message, password string) (string, error) {
+func signMessage(s *Server, address, message, password string) (string, error) {
 	payload, err := json.Marshal(signMessageReq{
 		Address:  address,
 		Message:  message,
@@ -279,7 +279,7 @@ func signMessage(address, message, password string) (string, error) {
 	}
 
 	res := new(signMessageResp)
-	if err := request(signMessageURl, payload, res); err != nil {
+	if err := s.request(signMessageURl, payload, res); err != nil {
 		return "", nil
 	}
 	return res.Signature, nil
@@ -314,7 +314,7 @@ var signUnlockHTLCContractTxReq = `{
     }
 }`
 
-func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
+func signUnlockHTLCContractTransaction(s *Server, account AccountInfo, preimage, recipientSig, rawTransaction, signingInst string) (string, error) {
 	payload := []byte(fmt.Sprintf(signUnlockHTLCContractTxReq,
 		account.Password,
 		rawTransaction,
@@ -324,7 +324,7 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 		account.TxFee,
 	))
 	res := new(signTxResp)
-	if err := request(signTransactionURL, payload, res); err != nil {
+	if err := s.request(signTransactionURL, payload, res); err != nil {
 		return "", err
 	}
 
@@ -335,14 +335,14 @@ func signUnlockHTLCContractTransaction(account AccountInfo, preimage, recipientS
 	return res.Tx.RawTransaction, nil
 }
 
-func decodeHTLCProgram(program string) (*HTLCContractArgs, error) {
+func decodeHTLCProgram(s *Server, program string) (*HTLCContractArgs, error) {
 	payload, err := json.Marshal(decodeProgramReq{Program: program})
 	if err != nil {
 		return nil, err
 	}
 
 	res := new(decodeProgramResp)
-	if err := request(decodeProgramURL, payload, res); err != nil {
+	if err := s.request(decodeProgramURL, payload, res); err != nil {
 		return nil, err
 	}
 
@@ -365,33 +365,33 @@ func decodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 }
 
 // DeployHTLCContract deploy HTLC contract.
-func DeployHTLCContract(account AccountInfo, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
+func DeployHTLCContract(s *Server, account AccountInfo, contractValue AssetAmount, contractArgs HTLCContractArgs) (string, error) {
 	// compile locked HTLC cotnract
-	HTLCContractControlProgram, err := compileLockHTLCContract(contractArgs)
+	HTLCContractControlProgram, err := compileLockHTLCContract(s, contractArgs)
 	if err != nil {
 		return "", err
 	}
 
 	// build locked HTLC contract
-	txLocked, err := buildLockHTLCContractTransaction(account, contractValue, HTLCContractControlProgram)
+	txLocked, err := buildLockHTLCContractTransaction(s, account, contractValue, HTLCContractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// sign locked HTLC contract transaction
-	signedTransaction, err := signTransaction(account.Password, txLocked)
+	signedTransaction, err := signTransaction(s, account.Password, txLocked)
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed HTLC contract transaction
-	txID, err := submitTransaction(signedTransaction)
+	txID, err := submitTransaction(s, signedTransaction)
 	if err != nil {
 		return "", err
 	}
 
 	// get HTLC contract output ID
-	contractUTXOID, err := getContractUTXOID(txID, HTLCContractControlProgram)
+	contractUTXOID, err := getContractUTXOID(s, txID, HTLCContractControlProgram)
 	if err != nil {
 		return "", err
 	}
@@ -399,14 +399,14 @@ func DeployHTLCContract(account AccountInfo, contractValue AssetAmount, contract
 }
 
 // CallHTLCContract call HTLC contract.
-func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string) (string, error) {
-	_, contractValue, err := ListUnspentOutputs(contractUTXOID)
+func CallHTLCContract(s *Server, account AccountInfo, contractUTXOID, preimage string) (string, error) {
+	_, contractValue, err := ListUnspentOutputs(s, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
 
 	// build unlocked contract transaction
-	buildTxResp, err := buildUnlockHTLCContractTransaction(account, contractUTXOID, *contractValue)
+	buildTxResp, err := buildUnlockHTLCContractTransaction(s, account, contractUTXOID, *contractValue)
 	if err != nil {
 		return "", err
 	}
@@ -416,31 +416,31 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string) (str
 		fmt.Println(err)
 	}
 
-	contractControlProgram, signData, err := decodeRawTransaction(buildTxResp.RawTransaction, *contractValue)
+	contractControlProgram, signData, err := decodeRawTransaction(s, buildTxResp.RawTransaction, *contractValue)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	// get address by account ID and contract control program
-	address, err := getAddress(account.AccountID, contractControlProgram)
+	address, err := getAddress(s, account.AccountID, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// sign raw transaction
-	recipientSig, err := signMessage(address, signData, account.Password)
+	recipientSig, err := signMessage(s, address, signData, account.Password)
 	if err != nil {
 		return "", err
 	}
 
 	// sign raw transaction
-	signedTransaction, err := signUnlockHTLCContractTransaction(account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
+	signedTransaction, err := signUnlockHTLCContractTransaction(s, account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed HTLC contract transaction
-	txID, err := submitTransaction(signedTransaction)
+	txID, err := submitTransaction(s, signedTransaction)
 	if err != nil {
 		return "", err
 	}
@@ -449,39 +449,39 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string) (str
 }
 
 // CancelHTLCContract cancel HTLC contract.
-func CancelHTLCContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
+func CancelHTLCContract(s *Server, accountInfo AccountInfo, contractUTXOID string) (string, error) {
 	// get contract control program by contract UTXOID
-	contractControlProgram, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	contractControlProgram, contractValue, err := ListUnspentOutputs(s, contractUTXOID)
 	if err != nil {
 		return "", err
 	}
 
 	// get public key by contract control program
-	contractArgs, err := decodeHTLCProgram(contractControlProgram)
+	contractArgs, err := decodeHTLCProgram(s, contractControlProgram)
 	if err != nil {
 		return "", err
 	}
 
 	// get public key path and root xpub by contract args
-	xpubInfo, err := getXPubKeyInfo(accountInfo.AccountID, contractArgs.SenderPublicKey)
+	xpubInfo, err := getXPubKeyInfo(s, accountInfo.AccountID, contractArgs.SenderPublicKey)
 	if err != nil {
 		return "", err
 	}
 
 	// build cancel contract transaction
-	builtTx, err := buildCancelContractTransaction(accountInfo, contractUTXOID, xpubInfo, contractValue)
+	builtTx, err := buildCancelContractTransaction(s, accountInfo, contractUTXOID, xpubInfo, contractValue)
 	if err != nil {
 		return "", err
 	}
 
 	// sign cancel contract transaction
-	signedTx, err := signTransaction(accountInfo.Password, builtTx)
+	signedTx, err := signTransaction(s, accountInfo.Password, builtTx)
 	if err != nil {
 		return "", err
 	}
 
 	// submit signed unlocked contract transaction
-	txID, err := submitTransaction(signedTx)
+	txID, err := submitTransaction(s, signedTx)
 	if err != nil {
 		return "", err
 	}

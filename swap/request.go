@@ -8,14 +8,20 @@ import (
 	"net/http"
 )
 
+type Server struct {
+	IP   string
+	Port string
+}
+
 type response struct {
 	Status    string          `json:"status"`
 	Data      json.RawMessage `json:"data"`
 	ErrDetail string          `json:"error_detail"`
 }
 
-func request(url string, payload []byte, respData interface{}) error {
-	resp := &response{}
+func (s *Server) request(apiURL string, payload []byte, respData interface{}) error {
+	url := "http://" + s.IP + ":" + s.Port + "/" + apiURL
+	resp := new(response)
 	if err := post(url, payload, resp); err != nil {
 		return err
 	}
