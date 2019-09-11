@@ -23,6 +23,7 @@ func main() {
 	swapCmd.AddCommand(cancelCmd)
 	swapCmd.AddCommand(deployHTLCCmd)
 	swapCmd.AddCommand(callHTLCCmd)
+	swapCmd.AddCommand(cancelHTLCCmd)
 	if err := swapCmd.Execute(); err != nil {
 		os.Exit(0)
 	}

@@ -360,6 +360,8 @@ func decodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 		return nil, err
 	}
 
+	fmt.Println("sender public key:", contractArgs.SenderPublicKey)
+
 	contractArgs.BlockHeight = blockHeight
 	return contractArgs, nil
 }
@@ -441,6 +443,47 @@ func CallHTLCContract(account AccountInfo, contractUTXOID, preimage string) (str
 
 	// submit signed HTLC contract transaction
 	txID, err := submitTransaction(signedTransaction)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
+
+// CancelHTLCContract cancel HTLC contract.
+func CancelHTLCContract(accountInfo AccountInfo, contractUTXOID string) (string, error) {
+	// get contract control program by contract UTXOID
+	contractControlProgram, contractValue, err := ListUnspentOutputs(contractUTXOID)
+	if err != nil {
+		return "", err
+	}
+
+	// get public key by contract control program
+	contractArgs, err := decodeHTLCProgram(contractControlProgram)
+	if err != nil {
+		return "", err
+	}
+
+	// get public key path and root xpub by contract args
+	xpubInfo, err := getXPubKeyInfo(accountInfo.AccountID, contractArgs.SenderPublicKey)
+	if err != nil {
+		return "", err
+	}
+
+	// build cancel contract transaction
+	builtTx, err := buildCancelContractTransaction(accountInfo, contractUTXOID, xpubInfo, contractValue)
+	if err != nil {
+		return "", err
+	}
+
+	// sign cancel contract transaction
+	signedTx, err := signTransaction(accountInfo.Password, builtTx)
+	if err != nil {
+		return "", err
+	}
+
+	// submit signed unlocked contract transaction
+	txID, err := submitTransaction(signedTx)
 	if err != nil {
 		return "", err
 	}

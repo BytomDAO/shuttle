@@ -31,8 +31,14 @@ func init() {
 	// call contract arguments
 	callCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
 
-	// cancel contract arguments
+	// call HTLC contract arguments
+	callHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+
+	// cancel tradeoff contract arguments
 	cancelCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+
+	// cancel HTLC contract arguments
+	cancelHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
 }
 
 var (
@@ -237,6 +243,37 @@ var callHTLCCmd = &cobra.Command{
 
 		preimage := args[3]
 		txID, err := swap.CallHTLCContract(account, contractUTXOID, preimage)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+		fmt.Println("--> txID:", txID)
+	},
+}
+
+var cancelHTLCCmd = &cobra.Command{
+	Use:   "cancelHTLC <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag]",
+	Short: "cancel HTLC contract for asset swapping",
+	Args:  cobra.ExactArgs(4),
+	Run: func(cmd *cobra.Command, args []string) {
+		accountInfo := swap.AccountInfo{
+			AccountID: args[0],
+			Password:  args[1],
+			Receiver:  args[2],
+			TxFee:     txFee,
+		}
+		if len(accountInfo.AccountID) == 0 || len(accountInfo.Password) == 0 || len(accountInfo.Receiver) == 0 {
+			fmt.Println("The part field of the structure AccountInfo is empty:", accountInfo)
+			os.Exit(0)
+		}
+
+		contractUTXOID := args[3]
+		if len(contractUTXOID) == 0 {
+			fmt.Println("contract utxoID is empty:", contractUTXOID)
+			os.Exit(0)
+		}
+
+		txID, err := swap.CancelHTLCContract(accountInfo, contractUTXOID)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)
