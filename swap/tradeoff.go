@@ -377,8 +377,6 @@ type XPubKeyInfo struct {
 }
 
 func getXPubKeyInfo(accountID, publicKey string) (*XPubKeyInfo, error) {
-	fmt.Println("getXPubKeyInfo accountID:", accountID)
-	fmt.Println("getXPubKeyInfo publicKey:", publicKey)
 	payload, err := json.Marshal(listPublicKeysReq{AccountID: accountID})
 	if err != nil {
 		return nil, err

@@ -360,8 +360,6 @@ func decodeHTLCProgram(program string) (*HTLCContractArgs, error) {
 		return nil, err
 	}
 
-	fmt.Println("sender public key:", contractArgs.SenderPublicKey)
-
 	contractArgs.BlockHeight = blockHeight
 	return contractArgs, nil
 }
