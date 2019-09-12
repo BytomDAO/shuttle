@@ -35,8 +35,8 @@ Firstly, you should install and configure bytom node, see also: [Bytom repositor
 This BTM swap tool is still in beta, so repository code will be changed frequently. You can build tool from source code directly.
 
 ```shell
-$ git clone https://github.com/Bytom/btm-swap-tool.git $GOPATH/src/github.com/btm-swap-tool
-$ cd $GOPATH/src/github.com/btm-swap-tool/cmd
+$ git clone https://github.com/Bytom/shuttle.git $GOPATH/src/github.com/shuttle
+$ cd $GOPATH/src/github.com/shuttle
 $ go build main.go
 ```
 
