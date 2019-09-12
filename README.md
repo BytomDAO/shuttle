@@ -37,7 +37,14 @@ This BTM swap tool is still in beta, so repository code will be changed frequent
 ```shell
 $ git clone https://github.com/Bytom/shuttle.git $GOPATH/src/github.com/shuttle
 $ cd $GOPATH/src/github.com/shuttle
-$ go build main.go
+$ make install
+```
+
+or remove shuttle:
+
+```shell
+$ cd $GOPATH/src/github.com/shuttle
+$ make clean
 ```
 
 ## 3 Usage
