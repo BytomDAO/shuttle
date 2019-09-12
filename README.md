@@ -34,7 +34,7 @@ Firstly, you should install and configure bytom node, see also: [Bytom repositor
 
 ### 2.3 Build from source code
 
-This BTM swap tool is still in beta, so repository code will be changed frequently. You can build tool from source code directly.
+Shuttle is still in beta, so repository code will be changed frequently. You can build tool from source code directly.
 
 ```shell
 $ git clone https://github.com/Bytom/shuttle.git $GOPATH/src/github.com/shuttle
