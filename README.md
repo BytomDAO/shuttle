@@ -83,6 +83,10 @@ $ make clean
 
 ### 3.1 Swap assets in bytom or vapor
 
+You can swap assets in bytom or vapor:
+
+![shuttle1](./images/shuttle1.png)
+
 #### 3.1.1 Launch bytom node
 
 For testing, you can launch bytom solonet node.
@@ -187,6 +191,10 @@ $ swap cancelTradeoff 10CJPO1HG0A02 12345 00145b0a81adc5c2d68a9967082a09c96e82d6
 Now, account a1 cancel tradeoff transaction, and 200 BTC come back.
 
 ### 3.2 Swap assets between bytom and vapor
+
+You can swap assets between bytom and vapor:
+
+![shuttle2](./images/shuttle2.jpeg)
 
 #### 3.2.1 Launch bytom and vapor node
 
