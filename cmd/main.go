@@ -18,9 +18,9 @@ var swapCmd = &cobra.Command{
 }
 
 func main() {
-	swapCmd.AddCommand(deployCmd)
-	swapCmd.AddCommand(callCmd)
-	swapCmd.AddCommand(cancelCmd)
+	swapCmd.AddCommand(deployTradeoffCmd)
+	swapCmd.AddCommand(callTradeoffCmd)
+	swapCmd.AddCommand(cancelTradeoffCmd)
 	swapCmd.AddCommand(deployHTLCCmd)
 	swapCmd.AddCommand(callHTLCCmd)
 	swapCmd.AddCommand(cancelHTLCCmd)

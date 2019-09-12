@@ -11,15 +11,15 @@ import (
 
 func init() {
 	// deploy contract arguments
-	deployCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-	deployCmd.PersistentFlags().StringVar(&assetRequested, "assetRequested", "", "tradeoff contract paramenter with requested assetID")
-	deployCmd.PersistentFlags().Uint64Var(&amountRequested, "amountRequested", 0, "tradeoff contract paramenter with requested amount")
-	deployCmd.PersistentFlags().StringVar(&seller, "seller", "", "tradeoff contract paramenter with seller control-program")
-	deployCmd.PersistentFlags().StringVar(&cancelKey, "cancelKey", "", "tradeoff contract paramenter with seller pubkey for cancelling the contract")
-	deployCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
-	deployCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
-	deployCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	deployCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
+	deployTradeoffCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+	deployTradeoffCmd.PersistentFlags().StringVar(&assetRequested, "assetRequested", "", "tradeoff contract paramenter with requested assetID")
+	deployTradeoffCmd.PersistentFlags().Uint64Var(&amountRequested, "amountRequested", 0, "tradeoff contract paramenter with requested amount")
+	deployTradeoffCmd.PersistentFlags().StringVar(&seller, "seller", "", "tradeoff contract paramenter with seller control-program")
+	deployTradeoffCmd.PersistentFlags().StringVar(&cancelKey, "cancelKey", "", "tradeoff contract paramenter with seller pubkey for cancelling the contract")
+	deployTradeoffCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "tradeoff contract locked value with assetID")
+	deployTradeoffCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "tradeoff contract locked value with amount")
+	deployTradeoffCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	deployTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// deploy HTLC contract arguments
 	deployHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
@@ -33,9 +33,9 @@ func init() {
 	deployHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// call contract arguments
-	callCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-	callCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	callCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
+	callTradeoffCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+	callTradeoffCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	callTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// call HTLC contract arguments
 	callHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
@@ -43,9 +43,9 @@ func init() {
 	callHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// cancel tradeoff contract arguments
-	cancelCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-	cancelCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	cancelCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
+	cancelTradeoffCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+	cancelTradeoffCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	cancelTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// cancel HTLC contract arguments
 	cancelHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
@@ -81,8 +81,8 @@ var (
 	preimage           = ""
 )
 
-var deployCmd = &cobra.Command{
-	Use:   "deploy <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)]",
+var deployTradeoffCmd = &cobra.Command{
+	Use:   "deployTradeoff <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)]",
 	Short: "deploy tradeoff contract",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -123,7 +123,7 @@ var deployCmd = &cobra.Command{
 			Port: port,
 		}
 
-		contractUTXOID, err := swap.DeployContract(server, accountInfo, contractArgs, contractValue)
+		contractUTXOID, err := swap.DeployTradeoffContract(server, accountInfo, contractArgs, contractValue)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)
@@ -132,8 +132,8 @@ var deployCmd = &cobra.Command{
 	},
 }
 
-var callCmd = &cobra.Command{
-	Use:   "call <accountID> <password> <buyer-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
+var callTradeoffCmd = &cobra.Command{
+	Use:   "callTradeoff <accountID> <password> <buyer-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
 	Short: "call tradeoff contract for asset swapping",
 	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -159,7 +159,7 @@ var callCmd = &cobra.Command{
 			Port: port,
 		}
 
-		txID, err := swap.CallContract(server, accountInfo, contractUTXOID)
+		txID, err := swap.CallTradeoffContract(server, accountInfo, contractUTXOID)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(0)
@@ -168,8 +168,8 @@ var callCmd = &cobra.Command{
 	},
 }
 
-var cancelCmd = &cobra.Command{
-	Use:   "cancel <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
+var cancelTradeoffCmd = &cobra.Command{
+	Use:   "cancelTradeoff <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
 	Short: "cancel tradeoff contract for asset swapping",
 	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -255,7 +255,7 @@ var deployHTLCCmd = &cobra.Command{
 
 var callHTLCCmd = &cobra.Command{
 	Use:   "callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
-	Short: "callHTLC HTLC contract for asset swapping",
+	Short: "call HTLC contract for asset swapping",
 	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		account := swap.AccountInfo{

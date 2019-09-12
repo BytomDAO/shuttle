@@ -456,8 +456,8 @@ func buildCancelContractTransaction(s *Server, accountInfo AccountInfo, contract
 	return res, nil
 }
 
-// DeployContract deploy contract.
-func DeployContract(s *Server, accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
+// DeployTradeoffContract deploy contract.
+func DeployTradeoffContract(s *Server, accountInfo AccountInfo, contractArgs ContractArgs, contractValue AssetAmount) (string, error) {
 	// compile locked contract
 	contractControlProgram, err := compileLockContract(s, contractArgs)
 	if err != nil {
@@ -490,8 +490,8 @@ func DeployContract(s *Server, accountInfo AccountInfo, contractArgs ContractArg
 	return contractUTXOID, nil
 }
 
-// CallContract call contract.
-func CallContract(s *Server, accountInfo AccountInfo, contractUTXOID string) (string, error) {
+// CallTradeoffContract call contract.
+func CallTradeoffContract(s *Server, accountInfo AccountInfo, contractUTXOID string) (string, error) {
 	// build unlocked contract transaction
 	txUnlocked, err := buildUnlockContractTransaction(s, accountInfo, contractUTXOID)
 	if err != nil {
