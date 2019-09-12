@@ -9,9 +9,10 @@ Shuttle
   - [2.2 Install bytom node](#22-install-bytom-node)
   - [2.3 Build from source code](#23-build-from-source-code)
 - [3 Usage](#3-usage)
-  - [3.1 Launch bytom node](#31-launch-bytom-node)
-  - [3.2 Create account and issue your asset](#32-create-account-and-issue-your-asset)
-  - [3.3 Deploy contract](#33-deploy-contract)
+  - [3.1 Swap assets in bytom or vapor](#31-swap-assets-in-bytom-or-vapor)
+  - [3.2 Launch bytom node](#32-launch-bytom-node)
+  - [3.3 Create account and issue your asset](#33-create-account-and-issue-your-asset)
+  - [3.4 Deploy contract](#34-deploy-contract)
   - [3.5 Call contract](#35-call-contract)
 - [4 Contributing](#4-contributing)
 - [5 License](#5-license)
@@ -40,6 +41,31 @@ $ cd $GOPATH/src/github.com/shuttle
 $ make install
 ```
 
+Shuttle help information:
+
+```shell
+$ swap -h
+swap is a commond line client for bytom contract
+
+Usage:
+  swap [flags]
+  swap [command]
+
+Available Commands:
+  callHTLC       call HTLC contract for asset swapping
+  callTradeoff   call tradeoff contract for asset swapping
+  cancelHTLC     cancel HTLC contract for asset swapping
+  cancelTradeoff cancel tradeoff contract for asset swapping
+  deployHTLC     deploy HTLC contract
+  deployTradeoff deploy tradeoff contract
+  help           Help about any command
+
+Flags:
+  -h, --help   help for swap
+
+Use "swap [command] --help" for more information about a command.
+```
+
 or remove shuttle:
 
 ```shell
@@ -49,7 +75,11 @@ $ make clean
 
 ## 3 Usage
 
-### 3.1 Launch bytom node
+### 3.1 Swap assets in bytom or vapor
+
+For example, in bytom blockchain, account a1 has 200 BTC, account a2 has 10 BTM, they can swap their assets using shuttle follow:
+
+### 3.2 Launch bytom node
 
 For testing, you can launch bytom solonet node.
 
@@ -58,14 +88,14 @@ $ bytomd init --chain_id=solonet --home $HOME/bytom/solonet # init bytom solonet
 $ bytomd node --home $HOME/bytom/solonet --mining           # launch bytom solonet node and start mining
 ```
 
-### 3.2 Create account and issue your asset
+### 3.3 Create account and issue your asset
 
 You should create several accounts and issue your asset for testing, more details:
 
 - [Managing Accounts](https://github.com/Bytom/bytom/wiki/Managing-Accounts)
 - [Assets registration](https://github.com/Bytom/bytom/wiki/Advanced-Transaction#assets-registration)
 
-### 3.3 Deploy contract
+### 3.4 Deploy contract
 
 ```shell
 $ cd $GOPATH/src/github.com/btm-swap-tool/cmd
