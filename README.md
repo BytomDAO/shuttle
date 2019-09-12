@@ -1,5 +1,5 @@
-BTM Swap Tool
-==============
+Shuttle
+========
 
 [![MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
 
@@ -18,7 +18,7 @@ BTM Swap Tool
 
 ## 1 Background
 
-BTM swap tool is designed to help swap different assets in bytom.
+Shuttle is designed to help swap different assets in bytom.
 
 ## 2 Install
 
