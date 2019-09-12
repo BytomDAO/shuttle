@@ -15,6 +15,11 @@ Shuttle
     - [3.1.3 Deploy tradeoff contract](#313-deploy-tradeoff-contract)
     - [3.1.4 Call tradeoff contract](#314-call-tradeoff-contract)
     - [3.1.5 Cancel tradeoff contract](#315-cancel-tradeoff-contract)
+  - [3.2 Swap assets between bytom and vapor](#32-swap-assets-between-bytom-and-vapor)
+    - [3.2.1 Launch bytom and vapor node](#321-launch-bytom-and-vapor-node)
+    - [3.2.2 Deploy HTLC contract](#322-deploy-htlc-contract)
+    - [3.2.3 Call HTLC contract](#323-call-htlc-contract)
+    - [3.2.4 Cancel HTLC contract](#324-cancel-htlc-contract)
 - [4 Contributing](#4-contributing)
 - [5 License](#5-license)
 
@@ -180,6 +185,107 @@ $ swap cancelTradeoff 10CJPO1HG0A02 12345 00145b0a81adc5c2d68a9967082a09c96e82d6
 ![tradeoff-cancel](./images/tradeoff-cancel.png)
 
 Now, account a1 cancel tradeoff transaction, and 200 BTC come back.
+
+### 3.2 Swap assets between bytom and vapor
+
+#### 3.2.1 Launch bytom and vapor node
+
+For testing, you can launch bytom and vapor solonet node.
+
+Launch bytom solonet node:
+
+```shell
+$ bytomd init --chain_id=solonet --home $HOME/bytom/solonet # init bytom solonet node
+$ bytomd node --home $HOME/bytom/solonet --mining           # launch bytom solonet node and start mining
+```
+
+Launch vapor solonet node:
+
+```shell
+$ vapord init --chain_id=solonet --home $HOME/bytom/vapor-solonet # init vapor solonet node
+$ vapord node --home $HOME/bytom/vapor-solonet --mining           # launch vapor solonet node and start mining
+```
+
+#### 3.2.2 Deploy HTLC contract
+
+```shell
+$ swap deployHTLC -h
+deploy HTLC contract
+
+Usage:
+  swap deployHTLC <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)] [flags]
+
+Flags:
+      --amountLocked uint    HTLC contract locked value with amount
+      --assetLocked string   HTLC contract locked value with assetID
+      --blockHeight uint     HTLC contract locked value with blockHeight
+      --hash string          HTLC contract locked value with hash
+  -h, --help                 help for deployHTLC
+      --ip string            network address (default "127.0.0.1")
+      --port string          network port (default "9888")
+      --recipient string     HTLC contract paramenter with recipientPublicKey
+      --sender string        HTLC contract paramenter with sender PublicKey
+      --txFee uint           contract transaction fee (default 40000000)
+```
+
+```shell
+$ swap deployHTLC 11BB7TC8G0A02 12345 --sender 7262584844d4c14f512d1b6c9838e62c320e1d7887e7185bfea920c72a944e44 --recipient 562013c2f9082f1db52a2571034428921dd6eec8c010c2b2387f5b6125ff4aa7 --blockHeight 1200 --hash 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 --assetLocked bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a --amountLocked 20000000000
+--> contractUTXOID: e1b104a03f4135b45d1c4c5fabbdca4dd0555653a588b71d790d45c4ffb2c50e
+```
+
+#### 3.2.3 Call HTLC contract
+
+```shell
+$ swap callHTLC -h
+call HTLC contract for asset swapping
+
+Usage:
+  swap callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag] [URL flags(ip and port)] [flags]
+
+Flags:
+  -h, --help          help for callHTLC
+      --ip string     network address (default "127.0.0.1")
+      --port string   network port (default "9888")
+      --txFee uint    contract transaction fee (default 40000000)
+```
+
+```shell
+$ swap callHTLC 11BB86V300A04 12345 0014230cb75fcfcc70c580ce7f1d21c1e374d27334a8 68656c6c6f e1b104a03f4135b45d1c4c5fabbdca4dd0555653a588b71d790d45c4ffb2c50e
+--> txID: df57b7906684e3d85adf59073ccbc0a3c5114b165626e9791f3269e9e57c319e
+```
+
+![HTLC](./images/HTLC.png)
+
+The account a5 has similar steps.
+
+#### 3.2.4 Cancel HTLC contract
+
+```shell
+$ swap cancelHTLC -h
+cancel HTLC contract for asset swapping
+
+Usage:
+  swap cancelHTLC <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)] [flags]
+
+Flags:
+  -h, --help          help for cancelHTLC
+      --ip string     network address (default "127.0.0.1")
+      --port string   network port (default "9888")
+      --txFee uint    contract transaction fee (default 40000000)
+```
+
+```shell
+$ swap deployHTLC 11BB7TC8G0A02 12345 --sender 7262584844d4c14f512d1b6c9838e62c320e1d7887e7185bfea920c72a944e44 --recipient 562013c2f9082f1db52a2571034428921dd6eec8c010c2b2387f5b6125ff4aa7 --blockHeight 1200 --hash 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 --assetLocked bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a --amountLocked 20000000000
+--> contractUTXOID: 68ed6b948b93544ea135482f1acd93d6b10cdc88f52d44133d264a5ee86b1ebd
+$ swap cancelHTLC 11BB7TC8G0A02 12345 001434fec270871c1f3420db85831f59511b2dd2a026 68ed6b948b93544ea135482f1acd93d6b10cdc88f52d44133d264a5ee86b1ebd
+--> txID: c70a467e94b287d29c6d91a2cb6f8ef3c7ef4dba315d99acf2dc9ff698996270
+```
+
+![HTLC](./images/HTLC-cancel.png)
+
+Now, account a4 cancel HTLC transaction, and 200 BTC come back.
+
+The account a5 has similar steps.
 
 ## 4 Contributing
 
