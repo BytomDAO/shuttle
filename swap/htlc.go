@@ -447,34 +447,6 @@ func CallHTLCContract(s *Server, account AccountInfo, contractUTXOID, preimage s
 		return "", err
 	}
 
-	// signingInst, err := json.Marshal(buildTxResp.SigningInstructions[1])
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// contractControlProgram, signData, err := decodeRawTransaction(s, buildTxResp.RawTransaction, *contractValue)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// // get address by account ID and contract control program
-	// address, err := getAddress(s, account.AccountID, contractControlProgram)
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	// // sign raw transaction
-	// recipientSig, err := signMessage(s, address, signData, account.Password)
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	// // sign raw transaction
-	// signedTransaction, err := signUnlockHTLCContractTransaction(s, account, preimage, recipientSig, buildTxResp.RawTransaction, string(signingInst))
-	// if err != nil {
-	// 	return "", err
-	// }
-
 	// sign raw transaction
 	signedTransaction, err := signTransaction(s, account.Password, builltTx)
 	if err != nil {
