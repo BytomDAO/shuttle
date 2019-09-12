@@ -14,7 +14,7 @@ Shuttle
     - [3.1.2 Create account and issue your asset](#312-create-account-and-issue-your-asset)
     - [3.1.3 Deploy tradeoff contract](#313-deploy-tradeoff-contract)
     - [3.1.4 Call tradeoff contract](#314-call-tradeoff-contract)
-    - [3.1.5 Redeem asset](#315-redeem-asset)
+    - [3.1.5 Cancel tradeoff contract](#315-cancel-tradeoff-contract)
 - [4 Contributing](#4-contributing)
 - [5 License](#5-license)
 
@@ -148,14 +148,38 @@ $ swap callTradeoff 10CKAD3000A02 12345 00140fdee108543d305308097019ceb5aec3da60
 
 When the transaction will be confirmed in a new block, the whole swap is successful.
 
-![](./images/tradeoff.png)
+![tradeoff](./images/tradeoff.png)
 
 Now, account a1 get 10 BTM, and account a2 get 200 BTC.
 
-#### 3.1.5 Redeem asset
+#### 3.1.5 Cancel tradeoff contract
 
 If someone want to cancel this tradeoff transaction, he can call cancelTradeoff.
 
+```shell
+$ swap cancelTradeoff -h
+cancel tradeoff contract for asset swapping
+
+Usage:
+  swap cancelTradeoff <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)] [flags]
+
+Flags:
+  -h, --help          help for cancelTradeoff
+      --ip string     network address (default "127.0.0.1")
+      --port string   network port (default "9888")
+      --txFee uint    contract transaction fee (default 40000000)
+```
+
+```shell
+$ swap deployTradeoff 10CJPO1HG0A02 12345 --amountLocked 20000000000 --amountRequested 1000000000 --assetLocked bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a --assetRequested ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff --cancelKey 3e5d7d52d334964eef173021ef6a04dc0807ac8c41700fe718f5a80c2109f79e --seller 00145dd7b82556226d563b6e7d573fe61d23bd461c1f --txFee 40000000
+--> contractUTXOID: e898ea907f8586b3211a46b69d0cddd363f8a850f559656570eb6afc6ac382c5
+$ swap cancelTradeoff 10CJPO1HG0A02 12345 00145b0a81adc5c2d68a9967082a09c96e82d62aa058  e898ea907f8586b3211a46b69d0cddd363f8a850f559656570eb6afc6ac382c5
+--> txID: 0f75db743196b8b2e514c49d6483dfba9bd5ab8e913a7559ecaea0324977313f
+```
+
+![tradeoff-cancel](./images/tradeoff-cancel.png)
+
+Now, account a1 cancel tradeoff transaction, and 200 BTC come back.
 
 ## 4 Contributing
 
