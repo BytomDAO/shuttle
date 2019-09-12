@@ -256,7 +256,7 @@ $ swap callHTLC 11BB86V300A04 12345 0014230cb75fcfcc70c580ce7f1d21c1e374d27334a8
 
 ![HTLC](./images/HTLC.png)
 
-The account a5 has similar steps.
+The account a5 in vapor has same steps.
 
 #### 3.2.4 Cancel HTLC contract
 
@@ -285,7 +285,7 @@ $ swap cancelHTLC 11BB7TC8G0A02 12345 001434fec270871c1f3420db85831f59511b2dd2a0
 
 Now, account a4 cancel HTLC transaction, and 200 BTC come back.
 
-The account a5 has similar steps.
+The account a5 in vapor has same steps.
 
 ## 4 Contributing
 
