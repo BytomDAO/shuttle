@@ -13,10 +13,14 @@ type Server struct {
 	Port string
 }
 
+type Result struct {
+	Data json.RawMessage `json:"data"`
+}
+
 type response struct {
-	Status    string          `json:"status"`
-	Data      json.RawMessage `json:"data"`
-	ErrDetail string          `json:"error_detail"`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Res  Result `json:"result,omitempty"`
 }
 
 func (s *Server) request(apiURL string, payload []byte, respData interface{}) error {
@@ -26,11 +30,11 @@ func (s *Server) request(apiURL string, payload []byte, respData interface{}) er
 		return err
 	}
 
-	if resp.Status != "success" {
-		return errors.New(resp.ErrDetail)
+	if resp.Code != 200 {
+		return errors.New(resp.Msg)
 	}
 
-	return json.Unmarshal(resp.Data, respData)
+	return json.Unmarshal(resp.Res.Data, respData)
 }
 
 func post(url string, payload []byte, result interface{}) error {
