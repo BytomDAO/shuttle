@@ -1,0 +1,17 @@
+contract HTLC(
+  sender: PublicKey,
+  recipient: PublicKey,
+  blockHeight: Integer,
+  hash: Hash
+) locks valueAmount of valueAsset {
+  clause complete(preimage: String, sig: Signature) {
+    verify sha256(preimage) == hash
+    verify checkTxSig(recipient, sig)
+    unlock valueAmount of valueAsset
+  }
+  clause cancel(sig: Signature) {
+    verify above(blockHeight)
+    verify checkTxSig(sender, sig)
+    unlock valueAmount of valueAsset
+  }
+}

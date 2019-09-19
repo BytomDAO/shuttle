@@ -1,0 +1,13 @@
+contract TradeOffer(assetRequested: Asset,
+                    amountRequested: Amount,
+                    seller: Program,
+                    cancelKey: PublicKey) locks valueAmount of valueAsset {
+    clause trade() {
+      lock amountRequested of assetRequested with seller
+      unlock valueAmount of valueAsset
+    }
+    clause cancel(sellerSig: Signature) {
+      verify checkTxSig(cancelKey, sellerSig)
+      unlock valueAmount of valueAsset
+    }
+  }
