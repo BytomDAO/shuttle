@@ -40,3 +40,102 @@ func getUTXOID(s *Server, txID, controlProgram string) (string, error) {
 
 	return "", errFailedGetContractUTXOID
 }
+
+type SigningInstruction struct {
+	DerivationPath []string `json:"derivation_path"`
+	SignData       []string `json:"sign_data"`
+	DataWitness    []byte   `json:"-"`
+
+	// only shown for a single-signature tx
+	Pubkey string `json:"pubkey,omitempty"`
+}
+
+type SpendUTXOInput struct {
+	Type     string `json:"type"`
+	OutputID string `json:"output_id"`
+}
+
+type SpendWalletInput struct {
+	Type    string `json:"type"`
+	AssetID string `json:"asset"`
+	Amount  uint64 `json:"amount"`
+}
+
+type ControlAddressOutput struct {
+	Type    string `json:"type"`
+	Amount  uint64 `json:"amount"`
+	AssetID string `json:"asset"`
+	Address string `json:"address"`
+}
+
+type ControlProgramOutput struct {
+	Type           string `json:"type"`
+	Amount         uint64 `json:"amount"`
+	AssetID        string `json:"asset"`
+	ControlProgram string `json:"control_program"`
+}
+
+type buildTxReq struct {
+	Guid          string        `json:"guid"`
+	Fee           uint64        `json:"fee"`
+	Confirmations uint64        `json:"confirmations"`
+	Inputs        []interface{} `json:"inputs"`
+	Outputs       []interface{} `json:"outputs"`
+}
+
+type buildTxResp struct {
+	RawTx               string                `json:"raw_transaction"`
+	SigningInstructions []*SigningInstruction `json:"signing_instructions"`
+	Fee                 uint64                `json:"fee"`
+}
+
+// buildTx build tx.
+func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractProgram string, fee, confirmations, lockedAmount uint64) (*buildTxResp, error) {
+	// inputs:
+	spendUTXOInput := SpendUTXOInput{
+		Type:     "spend_utxo",
+		OutputID: outputID,
+	}
+
+	spendWalletInput := SpendWalletInput{
+		Type:    "spend_wallet",
+		AssetID: BTMAssetID,
+		Amount:  fee,
+	}
+
+	// outputs:
+	// controlAddressOutput := ControlAddressOutput{
+	// 	Type:    "control_address",
+	// 	Amount:  lockedAmount,
+	// 	AssetID: lockedAsset,
+	// 	Address: controlAddress,
+	// }
+	controlProgramOutput := ControlProgramOutput{
+		Type:           "control_program",
+		Amount:         lockedAmount,
+		AssetID:        lockedAsset,
+		ControlProgram: contractProgram,
+	}
+
+	var inputs, outputs []interface{}
+	inputs = append(inputs, spendUTXOInput, spendWalletInput)
+	// outputs = append(outputs, controlAddressOutput, controlProgramOutput)
+	outputs = append(outputs, controlProgramOutput)
+	payload, err := json.Marshal(buildTxReq{
+		Guid:          guid,
+		Fee:           fee,
+		Confirmations: confirmations,
+		Inputs:        inputs,
+		Outputs:       outputs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := new(buildTxResp)
+	if err := s.request(getTransactionURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

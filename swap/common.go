@@ -16,6 +16,10 @@ var (
 	listUnspentOutputsURL   = "list-unspent-outputs"
 )
 
+const (
+	BTMAssetID = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+)
+
 type AccountInfo struct {
 	AccountID string
 	Password  string
