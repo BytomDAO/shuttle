@@ -2,6 +2,7 @@ package swap
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type TxOutput struct {
@@ -76,7 +77,7 @@ type ControlProgramOutput struct {
 }
 
 type buildTxReq struct {
-	Guid          string        `json:"guid"`
+	GUID          string        `json:"guid"`
 	Fee           uint64        `json:"fee"`
 	Confirmations uint64        `json:"confirmations"`
 	Inputs        []interface{} `json:"inputs"`
@@ -122,7 +123,7 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 	// outputs = append(outputs, controlAddressOutput, controlProgramOutput)
 	outputs = append(outputs, controlProgramOutput)
 	payload, err := json.Marshal(buildTxReq{
-		Guid:          guid,
+		GUID:          guid,
 		Fee:           fee,
 		Confirmations: confirmations,
 		Inputs:        inputs,
@@ -139,3 +140,40 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 
 	return res, nil
 }
+
+type submitPaymentReq struct {
+	GUID       string     `json:"guid"`
+	RawTx      string     `json:"raw_transaction"`
+	Signatures [][]string `json:"signatures"`
+	Memo       string     `json:"memo"`
+}
+
+type submitPaymentResp struct {
+	TxID string `json:"transaction_hash"`
+}
+
+// submitPayment submit raw transaction and return transaction ID.
+func submitPayment(s *Server, guid, rawTx, memo string) (string, error) {
+	payload, err := json.Marshal(submitPaymentReq{
+		GUID:       guid,
+		RawTx:      rawTx,
+		Signatures: [][]string{},
+		Memo:       memo,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("payload:", string(payload))
+
+	res := new(submitPaymentResp)
+	if err := s.request(submitTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+
+	return res.TxID, nil
+}
+
+// func signMessage(s *Server, signData, xprv string) (string, error) {
+
+// }

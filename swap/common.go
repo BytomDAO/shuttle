@@ -5,7 +5,7 @@ var (
 	getTransactionURL       = "api/v1/btm/merchant/get-transaction" // get-transaction blockcenter url
 	signTransactionURL      = "sign-transaction"
 	decodeRawTransactionURL = "decode-raw-transaction"
-	submitTransactionURL    = "submit-transaction"
+	submitTransactionURL    = "api/v1/btm/merchant/submit-payment"
 	compileURL              = "compile"
 	decodeProgramURL        = "decode-program"
 	signMessageURl          = "sign-message"

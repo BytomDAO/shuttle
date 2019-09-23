@@ -41,3 +41,15 @@ func TestBuildTx(t *testing.T) {
 	}
 	fmt.Println(string(res))
 }
+
+func TestSubmitPayment(t *testing.T) {
+	guid := "90294d7d-0db1-4f6f-8485-990af6197e88" // acount a1
+	rawTx := "070100010161015f1773bf774fc34758c4bf86cc9fd021d8d19021414b286317d8bcf3ede61de55affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0afba9ca31700011600144e5b5b946da8618f4ed30f3178de4813a7a62516630240d5d284f92d342355723f0452ec0cd6e2156bcc979cc1e09eeaff7fadf6158505d9491212431e5504ab7f201232798e18b64cc4b73909d4220eb32b9ba1f3ed0920c9e310c4d7b9bd973e2836e30d1fd6cf083252dc8a2c35b4281e0d393300693102013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0f0da9ba217011600145f50069d54981661527191a4b0d1e9c79a7d8e1300013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff808bd66d01160014dc3e2f3dfacd20a5de691c1055655d57043aeaa500"
+	memo := ""
+
+	txID, err := submitPayment(server, guid, rawTx, memo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("submit tx result:", txID)
+}
