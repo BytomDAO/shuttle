@@ -1,8 +1,16 @@
 package swap
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+
+	"github.com/bytom/crypto/ed25519/chainkd"
+)
+
+var (
+	errXPrvLength = errors.New("XPrv length is invalid.")
 )
 
 type TxOutput struct {
@@ -174,6 +182,23 @@ func submitPayment(s *Server, guid, rawTx, memo string) (string, error) {
 	return res.TxID, nil
 }
 
-// func signMessage(s *Server, signData, xprv string) (string, error) {
+// signMessage sign message, return sig.
+func signMsg(signData, xprv string) (string, error) {
+	xprvBytes, err := hex.DecodeString(xprv)
+	if err != nil {
+		return "", err
+	}
+	if len(xprvBytes) != 64 {
+		return "", errXPrvLength
+	}
 
-// }
+	var newXPrv chainkd.XPrv
+	copy(newXPrv[:], xprvBytes[:])
+
+	msg, err := hex.DecodeString(signData)
+	if err != nil {
+		return "", err
+	}
+	sig := newXPrv.Sign(msg)
+	return hex.EncodeToString(sig), nil
+}

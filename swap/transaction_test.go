@@ -53,3 +53,16 @@ func TestSubmitPayment(t *testing.T) {
 	}
 	fmt.Println("submit tx result:", txID)
 }
+
+func TestSignMsg(t *testing.T) {
+	signData := "12abef"
+	xprv := "0a6c7936304a753592b2c70af998ab35ab39200f2bcc2655cfffef505412f8ecadf574f93a6a0a2cc6573bfa96c6deabd2ac06beb0bd59a4a77513d5b6e51319"
+	sig, err := signMsg(signData, xprv)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("sig:", sig)
+}
+
+8c5bcf0f5e8ed94c6db496a26c0d77355967e5f147167ba8ab37529a9c76686f
+59967b2d7ac15693d56c166dbbd017b5d6cb3013a0b766ac9479d705ae820109
