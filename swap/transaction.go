@@ -140,6 +140,7 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("payload:", string(payload))
 
 	res := new(buildTxResp)
 	if err := s.request(getTransactionURL, payload, res); err != nil {
@@ -165,14 +166,12 @@ func submitPayment(s *Server, guid, rawTx, memo string) (string, error) {
 	payload, err := json.Marshal(submitPaymentReq{
 		GUID:       guid,
 		RawTx:      rawTx,
-		Signatures: [][]string{},
+		Signatures: [][]string{[]string{""}, []string{""}}, // if tx inputs length is 2, need double []string{""}
 		Memo:       memo,
 	})
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println("payload:", string(payload))
 
 	res := new(submitPaymentResp)
 	if err := s.request(submitTransactionURL, payload, res); err != nil {

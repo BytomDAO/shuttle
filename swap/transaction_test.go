@@ -7,8 +7,8 @@ import (
 )
 
 var server = &Server{
-	IP:   "52.82.73.202",
-	Port: "3060",
+	IP:   "127.0.0.1",
+	Port: "3000",
 }
 
 func TestGetUTXOID(t *testing.T) {
@@ -22,11 +22,11 @@ func TestGetUTXOID(t *testing.T) {
 }
 
 func TestBuildTx(t *testing.T) {
-	guid := "90294d7d-0db1-4f6f-8485-990af6197e88" // acount a1
+	guid := "dbcb0423-ce18-47f0-8f03-dbc1260a3d76" // acount a1
 	fee := uint64(40000000)
 	confirmations := uint64(1)
 	outputID := "e5b5a81e560536aae67ad21098109be17c56027f0b7dce9ab0be92bd38858c54"
-	lockedAsset := "31f326e629719627b3b07a428e28572dfc62bedf8d9d3ee4a44911b93e5a128b"
+	lockedAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
 	controlAddress := "sm1qrzmerymfs2arese3zg5y4fjl2atndkgn3j8dea"
 	contractProgram := "001418b791936982ba3cc33112284aa65f575736d913" // redeem to a1
 	lockedAmount := uint64(1)
@@ -43,8 +43,8 @@ func TestBuildTx(t *testing.T) {
 }
 
 func TestSubmitPayment(t *testing.T) {
-	guid := "90294d7d-0db1-4f6f-8485-990af6197e88" // acount a1
-	rawTx := "070100010161015f1773bf774fc34758c4bf86cc9fd021d8d19021414b286317d8bcf3ede61de55affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0afba9ca31700011600144e5b5b946da8618f4ed30f3178de4813a7a62516630240d5d284f92d342355723f0452ec0cd6e2156bcc979cc1e09eeaff7fadf6158505d9491212431e5504ab7f201232798e18b64cc4b73909d4220eb32b9ba1f3ed0920c9e310c4d7b9bd973e2836e30d1fd6cf083252dc8a2c35b4281e0d393300693102013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0f0da9ba217011600145f50069d54981661527191a4b0d1e9c79a7d8e1300013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff808bd66d01160014dc3e2f3dfacd20a5de691c1055655d57043aeaa500"
+	guid := "dbcb0423-ce18-47f0-8f03-dbc1260a3d76" // acount a1
+	rawTx := "07010002015f015d5af8651f89ce87c4ab542ce8db3d945cee238d6a0b90b43a7bbb34e5afa54c2effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80d7cc5a0001160014b655549012a6b2ec01f6207638f65fcb2d6b7ef9630240506c41bedec62e2751f4fc17103b2c55fd52c929cc2c591f387f5b8c759e06574a13415a4b11dfb050ac512a39292420f6c121047a11056b789ce5c26e0d820b20be5144b1d13a0afa7d79d439551ade6419ca5af8cdbe7823378d7d9cabad53ae015f015d95a8062e70ef687c08b25ba497c564b8a3f05c49e9ab88c66d090784f1b91efeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80c9fe3d0001160014538138c216e836097ffcae2eb29cfa6eb9ebb88d63024066133e67617b54acc96c8ea8dcec40cb29a71a5f21e687f06c49c1ce1b67a2f2bfe0aea9d712ee496b58d966e177729da08541bf6fe2923144d9ad7c70d1aa0320e4a9372b3513b8462e56a95fb6a17a53d19c40f1b206f357a391cc7386403f0602013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e1eb170116001458ff9e04104430313e2a4a624be748453c956d9200013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff808bd66d0116001470f1ffbfd3c90a2e2d93429d1438e4f4b7025d3600"
 	memo := ""
 
 	txID, err := submitPayment(server, guid, rawTx, memo)
@@ -63,6 +63,3 @@ func TestSignMsg(t *testing.T) {
 	}
 	fmt.Println("sig:", sig)
 }
-
-8c5bcf0f5e8ed94c6db496a26c0d77355967e5f147167ba8ab37529a9c76686f
-59967b2d7ac15693d56c166dbbd017b5d6cb3013a0b766ac9479d705ae820109
