@@ -242,3 +242,29 @@ func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 
 	return res, nil
 }
+
+// submitUnlockedPayment submit raw transaction and return transaction ID.
+func submitUnlockedPayment(s *Server, guid, rawTx, memo, preimage, spendUTXOSig, spendWalletSig string) (string, error) {
+	spendUTXOSignatures := append([]string{}, preimage, spendUTXOSig, "")
+	spendWalletSignatures := append([]string{}, spendWalletSig)
+	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
+
+	payload, err := json.Marshal(submitPaymentReq{
+		GUID:       guid,
+		RawTx:      rawTx,
+		Signatures: sigs,
+		Memo:       memo,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("submitUnlockedPayment:", string(payload))
+
+	res := new(submitPaymentResp)
+	if err := s.request(submitTransactionURL, payload, res); err != nil {
+		return "", err
+	}
+
+	return res.TxID, nil
+}

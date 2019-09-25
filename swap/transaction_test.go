@@ -77,6 +77,21 @@ func TestSubmitPayment(t *testing.T) {
 	fmt.Println("submit tx result:", txID)
 }
 
+func TestSubmitUnlockedPayment(t *testing.T) {
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
+	rawTx := "0701000201d30101d001b631510ab58859eb6834068a3ec9dc6104efe8c13fba707908279be029b8a29abae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a0100018b01202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b98240164206ea28f3f1389efd6a731de070fb38ab69dc93dae6c73b6524bac901b662f601d20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2437422547a6418000000557aa8547a88537a7bae7cac63220000007bcd9f69537a7cae7cac00c001000161015f1acbe8bc0d8772def4fa94a87a060aa6e8f26a3b6d2d06cd5680e9ab3ee3067affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8099c4d5990100011600145b0a81adc5c2d68a9967082a09c96e82d62aa058220120eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c243020139bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a0101160014cd113c96383b8dea73bf35a5ca1099c29f2a549300013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e5bac29901011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800"
+	memo := ""
+	preimage := "68656c6c6f" // hex("hello")
+	spendUTXOSig := "02bf47859fb4893429df57ac9a69a1ec592a68206cc24b54d1bf747cdc5698ba96cd627f8b8b6e22dbcdaee79855507d1e4fa4cd57bbb800f0f3023306dd8207"
+	spendWalletSig := "868617bbfd2ca48f17ae4dd1eca55e07fab2a250f804400e9b5f62d46394613c038bd1f95e9b427500a91d9da82d2b95b732d3b4780caa13dcdb849301f47700"
+
+	txID, err := submitUnlockedPayment(server, guid, rawTx, memo, preimage, spendUTXOSig, spendWalletSig)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("submit tx result:", txID)
+}
+
 func TestSignMsg(t *testing.T) {
 	signData := "12abef"
 	xprv := "0a6c7936304a753592b2c70af998ab35ab39200f2bcc2655cfffef505412f8ecadf574f93a6a0a2cc6573bfa96c6deabd2ac06beb0bd59a4a77513d5b6e51319"
