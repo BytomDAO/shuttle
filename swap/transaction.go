@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/bytom/crypto/ed25519/chainkd"
 )
@@ -99,13 +98,12 @@ type buildTxResp struct {
 }
 
 // buildTx build tx.
-func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractProgram string, fee, confirmations, lockedAmount uint64) (*buildTxResp, error) {
+func buildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, fee, confirmations, lockedAmount uint64) (*buildTxResp, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
 		OutputID: outputID,
 	}
-
 	spendWalletInput := SpendWalletInput{
 		Type:    "spend_wallet",
 		AssetID: BTMAssetID,
@@ -113,12 +111,6 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 	}
 
 	// outputs:
-	// controlAddressOutput := ControlAddressOutput{
-	// 	Type:    "control_address",
-	// 	Amount:  lockedAmount,
-	// 	AssetID: lockedAsset,
-	// 	Address: controlAddress,
-	// }
 	controlProgramOutput := ControlProgramOutput{
 		Type:           "control_program",
 		Amount:         lockedAmount,
@@ -128,7 +120,6 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 
 	var inputs, outputs []interface{}
 	inputs = append(inputs, spendUTXOInput, spendWalletInput)
-	// outputs = append(outputs, controlAddressOutput, controlProgramOutput)
 	outputs = append(outputs, controlProgramOutput)
 	payload, err := json.Marshal(buildTxReq{
 		GUID:          guid,
@@ -140,10 +131,9 @@ func buildTx(s *Server, guid, outputID, lockedAsset, controlAddress, contractPro
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("payload:", string(payload))
 
 	res := new(buildTxResp)
-	if err := s.request(getTransactionURL, payload, res); err != nil {
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
 	}
 

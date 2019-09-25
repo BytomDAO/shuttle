@@ -22,16 +22,15 @@ func TestGetUTXOID(t *testing.T) {
 }
 
 func TestBuildTx(t *testing.T) {
-	guid := "dbcb0423-ce18-47f0-8f03-dbc1260a3d76" // acount a1
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	fee := uint64(40000000)
 	confirmations := uint64(1)
-	outputID := "e5b5a81e560536aae67ad21098109be17c56027f0b7dce9ab0be92bd38858c54"
+	outputID := "21f174b985c667fcbf79d07a7b2e58a91a37d13d28f354978acaa70c822e0b97"
 	lockedAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
-	controlAddress := "sm1qrzmerymfs2arese3zg5y4fjl2atndkgn3j8dea"
-	contractProgram := "001418b791936982ba3cc33112284aa65f575736d913" // redeem to a1
 	lockedAmount := uint64(1)
+	contractProgram := "202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b98240164206ea28f3f1389efd6a731de070fb38ab69dc93dae6c73b6524bac901b662f601d20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2437422547a6418000000557aa8547a88537a7bae7cac63220000007bcd9f69537a7cae7cac00c0"
 
-	buildTxResp, err := buildTx(server, guid, outputID, lockedAsset, controlAddress, contractProgram, fee, confirmations, lockedAmount)
+	buildTxResp, err := buildTx(server, guid, outputID, lockedAsset, contractProgram, fee, confirmations, lockedAmount)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -43,7 +42,7 @@ func TestBuildTx(t *testing.T) {
 }
 
 func TestSubmitPayment(t *testing.T) {
-	guid := "dbcb0423-ce18-47f0-8f03-dbc1260a3d76" // acount a1
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	rawTx := "07010002015f015d5af8651f89ce87c4ab542ce8db3d945cee238d6a0b90b43a7bbb34e5afa54c2effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80d7cc5a0001160014b655549012a6b2ec01f6207638f65fcb2d6b7ef9630240506c41bedec62e2751f4fc17103b2c55fd52c929cc2c591f387f5b8c759e06574a13415a4b11dfb050ac512a39292420f6c121047a11056b789ce5c26e0d820b20be5144b1d13a0afa7d79d439551ade6419ca5af8cdbe7823378d7d9cabad53ae015f015d95a8062e70ef687c08b25ba497c564b8a3f05c49e9ab88c66d090784f1b91efeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80c9fe3d0001160014538138c216e836097ffcae2eb29cfa6eb9ebb88d63024066133e67617b54acc96c8ea8dcec40cb29a71a5f21e687f06c49c1ce1b67a2f2bfe0aea9d712ee496b58d966e177729da08541bf6fe2923144d9ad7c70d1aa0320e4a9372b3513b8462e56a95fb6a17a53d19c40f1b206f357a391cc7386403f0602013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e1eb170116001458ff9e04104430313e2a4a624be748453c956d9200013cffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff808bd66d0116001470f1ffbfd3c90a2e2d93429d1438e4f4b7025d3600"
 	memo := ""
 

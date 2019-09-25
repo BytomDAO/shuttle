@@ -1,7 +1,7 @@
 package swap
 
 var (
-	buildTransactionURL     = "build-transaction"
+	buildTransactionURL     = "api/v1/btm/merchant/build-transaction"
 	getTransactionURL       = "api/v1/btm/merchant/get-transaction" // get-transaction blockcenter url
 	signTransactionURL      = "sign-transaction"
 	decodeRawTransactionURL = "decode-raw-transaction"
