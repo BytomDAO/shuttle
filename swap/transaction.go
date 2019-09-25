@@ -152,11 +152,15 @@ type submitPaymentResp struct {
 }
 
 // submitPayment submit raw transaction and return transaction ID.
-func submitPayment(s *Server, guid, rawTx, memo string) (string, error) {
+func submitPayment(s *Server, guid, rawTx, memo, spendUTXOSig, spendUTXOPublicKey, spendWalletSig string) (string, error) {
+	spendUTXOSignatures := append([]string{}, spendUTXOSig, spendUTXOPublicKey)
+	spendWalletSignatures := append([]string{}, spendWalletSig)
+	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
+
 	payload, err := json.Marshal(submitPaymentReq{
 		GUID:       guid,
 		RawTx:      rawTx,
-		Signatures: [][]string{[]string{""}, []string{""}}, // if tx inputs length is 2, need double []string{""}
+		Signatures: sigs,
 		Memo:       memo,
 	})
 	if err != nil {
