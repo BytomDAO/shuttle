@@ -41,6 +41,27 @@ func TestBuildTx(t *testing.T) {
 	fmt.Println(string(res))
 }
 
+func TestBuildUnlockedTx(t *testing.T) {
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
+	fee := uint64(40000000)
+	confirmations := uint64(1)
+	contractUTXOID := "aa6cecf0c8768c05182ce5389d5a70c9fb9ca6e5697dc098568ffcc735093235"
+	contractAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
+	spendWalletAmount := fee
+	receiver := "sm1qe5gne93c8wx75ualxkju5yyec20j54ynjxd8zj" // account a4
+	contractAmount := uint64(1)
+
+	buildTxResp, err := buildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, fee, spendWalletAmount, confirmations, contractAmount)
+	if err != nil {
+		fmt.Println(err)
+	}
+	res, err := json.Marshal(buildTxResp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("build unlocked response:", string(res))
+}
+
 func TestSubmitPayment(t *testing.T) {
 	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	rawTx := "0701000201620160ab5d3e83a2055d7d02381106a1b4fd44af5c4fac2fbaa2dde5e40a6e5a49932fbae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3ab0b7a5f4a9e91502011600145b0a81adc5c2d68a9967082a09c96e82d62aa05801000161015f8057da31069f7630b2985d4a328b6d3c2d353652dbd2a3f44d54ba6085524ddcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8099c4d5990100011600145b0a81adc5c2d68a9967082a09c96e82d62aa058220120eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2430301af01bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a01018b01202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b98240164206ea28f3f1389efd6a731de070fb38ab69dc93dae6c73b6524bac901b662f601d20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2437422547a6418000000557aa8547a88537a7bae7cac63220000007bcd9f69537a7cae7cac00c000013fbae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3aafb7a5f4a9e915011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e5bac29901011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800"

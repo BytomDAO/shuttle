@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/bytom/crypto/ed25519/chainkd"
 )
@@ -194,4 +195,50 @@ func signMsg(signData, xprv string) (string, error) {
 	}
 	sig := newXPrv.Sign(msg)
 	return hex.EncodeToString(sig), nil
+}
+
+// buildUnlockedTx build unlocked contract tx.
+func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, fee, spendWalletAmount, confirmations, contractAmount uint64) (*buildTxResp, error) {
+	// inputs:
+	spendUTXOInput := SpendUTXOInput{
+		Type:     "spend_utxo",
+		OutputID: contractUTXOID,
+	}
+
+	spendWalletInput := SpendWalletInput{
+		Type:    "spend_wallet",
+		AssetID: BTMAssetID,
+		Amount:  spendWalletAmount,
+	}
+
+	// outputs:
+	controlAddressOutput := ControlAddressOutput{
+		Type:    "control_address",
+		Amount:  contractAmount,
+		AssetID: contractAsset,
+		Address: receiver,
+	}
+
+	var inputs, outputs []interface{}
+	inputs = append(inputs, spendUTXOInput, spendWalletInput)
+	outputs = append(outputs, controlAddressOutput)
+	payload, err := json.Marshal(buildTxReq{
+		GUID:          guid,
+		Fee:           fee,
+		Confirmations: confirmations,
+		Inputs:        inputs,
+		Outputs:       outputs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("build unlocked contract tx:", string(payload))
+
+	res := new(buildTxResp)
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
