@@ -153,8 +153,8 @@ type submitPaymentResp struct {
 }
 
 // submitPayment submit raw transaction and return transaction ID.
-func submitPayment(s *Server, guid, rawTx, memo, spendUTXOSig, spendUTXOPublicKey, spendWalletSig string) (string, error) {
-	spendUTXOSignatures := append([]string{}, spendUTXOSig, spendUTXOPublicKey)
+func submitPayment(s *Server, guid, rawTx, memo, spendWalletSig string, spendUTXOSignatures []string) (string, error) {
+	// spendUTXOSignatures := append([]string{}, spendUTXOSig, spendUTXOPublicKey)
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
 
@@ -244,8 +244,8 @@ func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 }
 
 // submitUnlockedPayment submit raw transaction and return transaction ID.
-func submitUnlockedPayment(s *Server, guid, rawTx, memo, preimage, spendUTXOSig, spendWalletSig string) (string, error) {
-	spendUTXOSignatures := append([]string{}, preimage, spendUTXOSig, "")
+func submitUnlockedPayment(s *Server, guid, rawTx, memo, spendWalletSig string, spendUTXOSignatures []string) (string, error) {
+	// spendUTXOSignatures := append([]string{}, preimage, spendUTXOSig, "")
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
 
