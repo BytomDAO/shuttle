@@ -93,8 +93,8 @@ func TestSubmitUnlockedPayment(t *testing.T) {
 }
 
 func TestSignMsg(t *testing.T) {
-	signData := "12abef"
-	xprv := "0a6c7936304a753592b2c70af998ab35ab39200f2bcc2655cfffef505412f8ecadf574f93a6a0a2cc6573bfa96c6deabd2ac06beb0bd59a4a77513d5b6e51319"
+	signData := "6b2c56ad857c98b602ea2211641c94b5e7979214b418777b359d9cc3856f7f12"
+	xprv := "682d87647c76edafb0c0bdb8b9a87e84f79627c86a4d7620c89a9ef7551ecf47013095e747f609c86703ee7c0281b2182dfaca66d60ea58814d7929e6b6968a5"
 	sig, err := signMsg(signData, xprv)
 	if err != nil {
 		fmt.Println(err)
