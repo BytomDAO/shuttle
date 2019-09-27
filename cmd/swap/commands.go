@@ -65,8 +65,7 @@ func init() {
 
 	// build deploy contract tx
 	buildTxCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	buildTxCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
-
+	buildTxCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
 }
 
 var (
