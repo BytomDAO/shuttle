@@ -335,7 +335,7 @@ func decodeProgram(s *Server, program string) (*ContractArgs, error) {
 		return nil, errTradeOffParametersInvalid
 	}
 
-	amount, err := parseUint64(instructions[5])
+	amount, err := ParseUint64(instructions[5])
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func decodeProgram(s *Server, program string) (*ContractArgs, error) {
 	return contractArgs, nil
 }
 
-func parseUint64(s string) (uint64, error) {
+func ParseUint64(s string) (uint64, error) {
 	data, err := hex.DecodeString(s)
 	if err != nil {
 		return 0, err

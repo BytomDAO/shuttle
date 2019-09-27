@@ -379,7 +379,7 @@ func decodeHTLCProgram(s *Server, program string) (*HTLCContractArgs, error) {
 		return nil, errHTLCParametersInvalid
 	}
 
-	blockHeight, err := parseUint64(instructions[3])
+	blockHeight, err := ParseUint64(instructions[3])
 	if err != nil {
 		return nil, err
 	}

@@ -145,7 +145,7 @@ func BuildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, loc
 		return "", err
 	}
 
-	r, err := json.Marshal(res)
+	r, err := json.MarshalIndent(res, "", "\t")
 	if err != nil {
 		return "", err
 	}
@@ -250,7 +250,7 @@ func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 		return "", err
 	}
 
-	r, err := json.Marshal(res)
+	r, err := json.MarshalIndent(res, "", "\t")
 	if err != nil {
 		return "", err
 	}

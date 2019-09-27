@@ -62,6 +62,11 @@ func init() {
 	equityCmd.PersistentFlags().BoolVar(&instance, strInstance, false, "Object of the Instantiated contracts.")
 	equityCmd.PersistentFlags().BoolVar(&ast, strAst, false, "AST of the contracts.")
 	equityCmd.PersistentFlags().BoolVar(&version, strVersion, false, "Version of equity compiler.")
+
+	// build deploy contract tx
+	buildTxCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	buildTxCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
+
 }
 
 var (
@@ -156,6 +161,56 @@ var deployTradeoffCmd = &cobra.Command{
 			os.Exit(0)
 		}
 		fmt.Println("--> contractUTXOID:", contractUTXOID)
+	},
+}
+
+var buildTxCmd = &cobra.Command{
+	Use:   "build <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
+	Short: "build contract",
+	Args:  cobra.ExactArgs(5),
+	Run: func(cmd *cobra.Command, args []string) {
+		guid := args[0]
+		if len(guid) == 0 {
+			fmt.Println("The part field of guid is invalid:", guid)
+			os.Exit(0)
+		}
+
+		outputID := args[1]
+		if len(outputID) != 64 {
+			fmt.Println("The part field of outputID is invalid:", outputID)
+			os.Exit(0)
+		}
+
+		lockedAsset := args[2]
+		if len(lockedAsset) != 64 {
+			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
+			os.Exit(0)
+		}
+
+		contractProgram := args[3]
+		if len(contractProgram) == 0 {
+			fmt.Println("The part field of contractProgram is invalid:", contractProgram)
+			os.Exit(0)
+		}
+
+		lockedAmount, err := swap.ParseUint64(args[4])
+		if err != nil {
+			fmt.Println("parse locked amount err:", err)
+			os.Exit(0)
+		}
+
+		server := &swap.Server{
+			IP:   ip,
+			Port: port,
+		}
+
+		res, err := swap.BuildTx(server, guid, outputID, lockedAsset, contractProgram, lockedAmount)
+		if err != nil {
+			fmt.Println("build tx err:", err)
+			os.Exit(0)
+		}
+
+		fmt.Println("build tx result:", res)
 	},
 }
 
