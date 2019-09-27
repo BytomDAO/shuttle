@@ -13,6 +13,11 @@ var (
 	errXPrvLength = errors.New("XPrv length is invalid.")
 )
 
+const (
+	fee           = uint64(40000000)
+	confirmations = uint64(1)
+)
+
 type TxOutput struct {
 	UTXOID      string `json:"utxo_id"`
 	Script      string `json:"script"`
@@ -98,8 +103,8 @@ type buildTxResp struct {
 	Fee                 uint64                `json:"fee"`
 }
 
-// buildTx build tx.
-func buildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, fee, confirmations, lockedAmount uint64) (*buildTxResp, error) {
+// BuildTx build tx.
+func BuildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, lockedAmount uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
@@ -130,17 +135,22 @@ func buildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, fee
 		Outputs:       outputs,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	fmt.Println("buildTx:", string(payload))
 
 	res := new(buildTxResp)
 	if err := s.request(buildTransactionURL, payload, res); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return res, nil
+	r, err := json.Marshal(res)
+	if err != nil {
+		return "", err
+	}
+
+	return string(r), nil
 }
 
 type submitPaymentReq struct {
@@ -198,7 +208,7 @@ func signMsg(signData, xprv string) (string, error) {
 }
 
 // buildUnlockedTx build unlocked contract tx.
-func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, fee, spendWalletAmount, confirmations, contractAmount uint64) (*buildTxResp, error) {
+func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, spendWalletAmount, contractAmount uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
@@ -230,17 +240,22 @@ func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 		Outputs:       outputs,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	fmt.Println("build unlocked contract tx:", string(payload))
 
 	res := new(buildTxResp)
 	if err := s.request(buildTransactionURL, payload, res); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return res, nil
+	r, err := json.Marshal(res)
+	if err != nil {
+		return "", err
+	}
+
+	return string(r), nil
 }
 
 // submitUnlockedPayment submit raw transaction and return transaction ID.
@@ -270,7 +285,7 @@ func submitUnlockedPayment(s *Server, guid, rawTx, memo, spendWalletSig string, 
 }
 
 // buildCallTradeoffTx build unlocked tradeoff contract tx.
-func buildCallTradeoffTx(s *Server, guid, contractUTXOID, contractAsset, seller, assetRequested string, fee, spendWalletAmount, confirmations, contractAmount, amountRequested uint64) (*buildTxResp, error) {
+func buildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested string, spendWalletAmount, contractAmount, amountRequested uint64) (*buildTxResp, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
