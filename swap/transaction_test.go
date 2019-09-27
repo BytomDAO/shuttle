@@ -25,10 +25,10 @@ func TestBuildTx(t *testing.T) {
 	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	fee := uint64(40000000)
 	confirmations := uint64(1)
-	outputID := "3dedd1f2d4a2f5c77237a60313bedd6ab4a865a08bd994e3b7c8709c829590e2"
+	outputID := "fa6e8ae89b3acdcfe8d8256c9adce856d87a658c0fe9c711136eca190b66c763"
 	lockedAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
-	lockedAmount := uint64(10000)
-	contractProgram := "202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b98240164206ea28f3f1389efd6a731de070fb38ab69dc93dae6c73b6524bac901b662f601d20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2437422547a6418000000557aa8547a88537a7bae7cac63220000007bcd9f69537a7cae7cac00c0"
+	lockedAmount := uint64(100)
+	contractProgram := "20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2431600145b0a81adc5c2d68a9967082a09c96e82d62aa058016420ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c0"
 
 	buildTxResp, err := buildTx(server, guid, outputID, lockedAsset, contractProgram, fee, confirmations, lockedAmount)
 	if err != nil {
@@ -45,13 +45,36 @@ func TestBuildUnlockedTx(t *testing.T) {
 	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	fee := uint64(40000000)
 	confirmations := uint64(1)
-	contractUTXOID := "a79197ffc3b8ecf4c5c5b3fd5139ec25f10c4cd80c3c72f880da4ee064ac8163"
+	contractUTXOID := "dd5ebcbd1c8a9feaa82aad3b6d9b4c28784c4bd1d94acacce6156b47269dc429"
 	contractAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
 	spendWalletAmount := fee
 	receiver := "sm1qe5gne93c8wx75ualxkju5yyec20j54ynjxd8zj" // account a4
-	contractAmount := uint64(99)
+	contractAmount := uint64(100)
 
 	buildTxResp, err := buildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, fee, spendWalletAmount, confirmations, contractAmount)
+	if err != nil {
+		fmt.Println(err)
+	}
+	res, err := json.Marshal(buildTxResp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("build unlocked response:", string(res))
+}
+
+func TestBuildCallTradeoffTx(t *testing.T) {
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
+	fee := uint64(40000000)
+	confirmations := uint64(1)
+	contractUTXOID := "dd5ebcbd1c8a9feaa82aad3b6d9b4c28784c4bd1d94acacce6156b47269dc429"
+	assetRequested := "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	amountRequested := uint64(100)
+	contractAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
+	spendWalletAmount := fee
+	seller := "00145b0a81adc5c2d68a9967082a09c96e82d62aa058" // seller program
+	contractAmount := uint64(100)
+
+	buildTxResp, err := buildCallTradeoffTx(server, guid, contractUTXOID, contractAsset, seller, assetRequested, fee, spendWalletAmount, confirmations, contractAmount, amountRequested)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -78,7 +101,7 @@ func TestSubmitPayment(t *testing.T) {
 	fmt.Println("submit tx result:", txID)
 }
 
-func TestSubmitUnlockedPayment(t *testing.T) {
+func TestSubmitUnlockedHTLCPayment(t *testing.T) {
 	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	rawTx := "0701000201d30101d0013b2c6b69759cd0a2245b2f1a5681cf782e485f077a86ed13f82cae677a671d66bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a0100018b01202cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b98240164206ea28f3f1389efd6a731de070fb38ab69dc93dae6c73b6524bac901b662f601d20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2437422547a6418000000557aa8547a88537a7bae7cac63220000007bcd9f69537a7cae7cac00c001000161015fabf3111e8449df088eda1072c1bd4322157b62f588d8817d36f548f444092591ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8099c4d5990100011600145b0a81adc5c2d68a9967082a09c96e82d62aa058220120eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c243020139bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a0101160014cd113c96383b8dea73bf35a5ca1099c29f2a549300013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e5bac29901011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800"
 	memo := ""
@@ -102,6 +125,36 @@ func TestSubmitCancelPayment(t *testing.T) {
 	spendWalletSig := "54d73d6d4b5ee8c5d675e347767e50784b8eafe3b80dae3bf054e70a4fb29bde964d37e514ff67af904b687feeaeaea21c48b4169fdc88d133d9aaf0c2c8070b"
 
 	spendUTXOSignatures := append([]string{}, spendUTXOSig, "01")
+	txID, err := submitPayment(server, guid, rawTx, memo, spendWalletSig, spendUTXOSignatures)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("submit tx result:", txID)
+}
+
+func TestSubmitTradeoffPayment(t *testing.T) {
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
+	rawTx := "07010002016201601edb4b73e76241f96de1bebf96dfa2c65e15a065cec78a23aa2fe1e1f3478a4ebae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a9ee9a4f4a9e91501011600145b0a81adc5c2d68a9967082a09c96e82d62aa05801000161015f3ec2cd05e9c3d0e3834386d3fc1d041b82892600996e485c7539be53e9168faaffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8099c4d5990100011600145b0a81adc5c2d68a9967082a09c96e82d62aa058220120eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c24303019c01bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a64017920eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2431600145b0a81adc5c2d68a9967082a09c96e82d62aa058016420ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c000013fbae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3abae8a4f4a9e915011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e5bac29901011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800"
+	memo := ""
+	spendUTXOSig := "c88cdd08f099c7a4a3aa4075e6439285e93c782dfe03f3160f79a171feb2c2f4a4acf716aba3cd4b0a33308f63c75ff23965912ef2cdf5599574eaa426c70d05"
+	spendUTXOPublicKey := "eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c243"
+	spendWalletSig := "633c41fc2de572dcb4284e2d66e6412c23696feba4e8f381abab3ce8b3508eace660a1b3d80b8421a49ca49edadf2a262b054379cb258ffb9d7f37c2b87d1f09"
+
+	spendUTXOSignatures := append([]string{}, spendUTXOSig, spendUTXOPublicKey)
+	txID, err := submitPayment(server, guid, rawTx, memo, spendWalletSig, spendUTXOSignatures)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("submit tx result:", txID)
+}
+
+func TestSubmitCallTradeoffPayment(t *testing.T) {
+	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
+	rawTx := "0701000201c00101bd012b30c07d12cc4e20268976694f4213fd0aa0d2406bab92b9770185d62415dcf9bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a6400017920eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2431600145b0a81adc5c2d68a9967082a09c96e82d62aa058016420ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c001000161015fc9a1ab37e062e33d6dbc1aa1a829ea031abbfc3a5892a3fd8f56c9b06a82fa07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8099c4d5990100011600145b0a81adc5c2d68a9967082a09c96e82d62aa058220120eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c243020139bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a6401160014cd113c96383b8dea73bf35a5ca1099c29f2a549300013effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80e5bac29901011600145b0a81adc5c2d68a9967082a09c96e82d62aa05800"
+	memo := ""
+	spendWalletSig := "71a2577526e82b92c1bda051df12057405f8df90937fca7e0837fd990b1d8586d74d22e80f499a1e25533557b6ad12327a8ebb4814183f9acbd8dade73352a0b"
+
+	spendUTXOSignatures := append([]string{}, "")
 	txID, err := submitPayment(server, guid, rawTx, memo, spendWalletSig, spendUTXOSignatures)
 	if err != nil {
 		fmt.Println(err)

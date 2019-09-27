@@ -133,6 +133,8 @@ func buildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, fee
 		return nil, err
 	}
 
+	fmt.Println("buildTx:", string(payload))
+
 	res := new(buildTxResp)
 	if err := s.request(buildTransactionURL, payload, res); err != nil {
 		return nil, err
@@ -267,4 +269,56 @@ func submitUnlockedPayment(s *Server, guid, rawTx, memo, spendWalletSig string, 
 	}
 
 	return res.TxID, nil
+}
+
+// buildCallTradeoffTx build unlocked tradeoff contract tx.
+func buildCallTradeoffTx(s *Server, guid, contractUTXOID, contractAsset, seller, assetRequested string, fee, spendWalletAmount, confirmations, contractAmount, amountRequested uint64) (*buildTxResp, error) {
+	// inputs:
+	spendUTXOInput := SpendUTXOInput{
+		Type:     "spend_utxo",
+		OutputID: contractUTXOID,
+	}
+
+	spendWalletInput := SpendWalletInput{
+		Type:    "spend_wallet",
+		AssetID: BTMAssetID,
+		Amount:  spendWalletAmount,
+	}
+
+	spendWalletUnlockTradeoffInput := SpendWalletInput{
+		Type:    "spend_wallet",
+		AssetID: assetRequested,
+		Amount:  amountRequested,
+	}
+
+	// outputs:
+	controlProgramOutput := ControlProgramOutput{
+		Type:           "control_program",
+		Amount:         amountRequested,
+		AssetID:        assetRequested,
+		ControlProgram: seller,
+	}
+
+	var inputs, outputs []interface{}
+	inputs = append(inputs, spendUTXOInput, spendWalletInput, spendWalletUnlockTradeoffInput)
+	outputs = append(outputs, controlProgramOutput)
+	payload, err := json.Marshal(buildTxReq{
+		GUID:          guid,
+		Fee:           fee,
+		Confirmations: confirmations,
+		Inputs:        inputs,
+		Outputs:       outputs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("build unlocked contract tx:", string(payload))
+
+	res := new(buildTxResp)
+	if err := s.request(buildTransactionURL, payload, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
