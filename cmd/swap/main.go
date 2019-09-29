@@ -27,6 +27,7 @@ func main() {
 	swapCmd.AddCommand(equityCmd)
 	swapCmd.AddCommand(buildTxCmd)
 	swapCmd.AddCommand(signMessageCmd)
+	swapCmd.AddCommand(submitPaymentCmd)
 	if err := swapCmd.Execute(); err != nil {
 		os.Exit(0)
 	}

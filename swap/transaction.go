@@ -164,8 +164,8 @@ type submitPaymentResp struct {
 	TxID string `json:"transaction_hash"`
 }
 
-// submitPayment submit raw transaction and return transaction ID.
-func submitPayment(s *Server, guid, rawTx, memo string, sigs [][]string) (string, error) {
+// SubmitPayment submit raw transaction and return transaction ID.
+func SubmitPayment(s *Server, guid, rawTx, memo string, sigs [][]string) (string, error) {
 	payload, err := json.Marshal(submitPaymentReq{
 		GUID:       guid,
 		RawTx:      rawTx,

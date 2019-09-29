@@ -67,6 +67,14 @@ func init() {
 	// build deploy contract tx
 	buildTxCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	buildTxCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
+
+	// submit tx
+	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOSig, "spendUTXOSig", "", "spend UTXO Signature")
+	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOPublicKey, "spendUTXOPublicKey", "", "spend UTXO PublicKey")
+	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSig, "spendWalletSig", "", "spend Wallet Signature")
+	submitPaymentCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "preimage")
+	submitPaymentCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	submitPaymentCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
 }
 
 var (
@@ -87,6 +95,11 @@ var (
 	// unlock contract paramenters
 	contractUTXOID = ""
 	buyer          = ""
+
+	//
+	spendUTXOSig       = ""
+	spendUTXOPublicKey = ""
+	spendWalletSig     = ""
 )
 
 var (
@@ -215,7 +228,7 @@ var buildTxCmd = &cobra.Command{
 }
 
 var signMessageCmd = &cobra.Command{
-	Use:   "sign [xprv] [message]",
+	Use:   "sign <xprv> <message>",
 	Short: "sign message",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -242,6 +255,67 @@ var signMessageCmd = &cobra.Command{
 			"message: %s\n"+
 			"signature: %s\n",
 			xprv, message, res)
+	},
+}
+
+var submitPaymentCmd = &cobra.Command{
+	Use:   "submit <action> <guid> <rawTx> [spend parameters] [URL flags(ip and port)]",
+	Short: "submit a payment",
+	Args:  cobra.ExactArgs(3),
+	Run: func(cmd *cobra.Command, args []string) {
+		action := args[0]
+		guid := args[1]
+		if len(guid) == 0 {
+			fmt.Println("The part field of guid is invalid:", guid)
+			os.Exit(0)
+		}
+
+		rawTx := args[2]
+		if _, err := hex.DecodeString(rawTx); err != nil {
+			fmt.Println("The part field of rawTx is invalid:", rawTx)
+			os.Exit(0)
+		}
+
+		spendUTXOSignatures := []string{}
+		spendWalletSignatures := []string{}
+		sigs := [][]string{}
+		switch action {
+		case "deployHTLC":
+			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+				os.Exit(0)
+			}
+
+			if _, err := hex.DecodeString(spendUTXOPublicKey); err != nil || len(spendUTXOPublicKey) != 64 {
+				fmt.Println("The part field of spendUTXOPublicKey is invalid:", spendUTXOPublicKey)
+				os.Exit(0)
+			}
+
+			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+				os.Exit(0)
+			}
+
+			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, spendUTXOPublicKey)
+
+		default:
+			fmt.Println("action is invalid:", action)
+			os.Exit(0)
+		}
+		spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+
+		server := &swap.Server{
+			IP:   ip,
+			Port: port,
+		}
+		res, err := swap.SubmitPayment(server, guid, rawTx, "", sigs)
+		if err != nil {
+			fmt.Println("submit tx err:", err)
+			os.Exit(0)
+		}
+
+		fmt.Printf("submit %s tx result: %s\n", action, res)
 	},
 }
 

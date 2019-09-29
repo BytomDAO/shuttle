@@ -88,7 +88,7 @@ func TestSubmitPayment(t *testing.T) {
 	spendUTXOSignatures := append([]string{}, spendUTXOSig, spendUTXOPublicKey)
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
-	txID, err := submitPayment(server, guid, rawTx, memo, sigs)
+	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -106,7 +106,7 @@ func TestSubmitUnlockedHTLCPayment(t *testing.T) {
 	spendUTXOSignatures := append([]string{}, preimage, spendUTXOSig, "")
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
-	txID, err := submitPayment(server, guid, rawTx, memo, sigs)
+	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -123,7 +123,7 @@ func TestSubmitCancelHTLCPayment(t *testing.T) {
 	spendUTXOSignatures := append([]string{}, spendUTXOSig)
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
-	txID, err := submitPayment(server, guid, rawTx, memo, sigs)
+	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -139,7 +139,7 @@ func TestSubmitTradeoffPayment(t *testing.T) {
 	spendUTXOSignatures := append([]string{}, spendUTXOSig)
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
-	txID, err := submitPayment(server, guid, rawTx, memo, sigs)
+	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -157,7 +157,7 @@ func TestSubmitCallTradeoffPayment(t *testing.T) {
 	spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
 	spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
-	txID, err := submitPayment(server, guid, rawTx, memo, sigs)
+	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
 	if err != nil {
 		fmt.Println(err)
 	}
