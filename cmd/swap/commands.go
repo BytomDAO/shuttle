@@ -214,6 +214,37 @@ var buildTxCmd = &cobra.Command{
 	},
 }
 
+var signMessageCmd = &cobra.Command{
+	Use:   "sign [xprv] [message]",
+	Short: "sign message",
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		xprv := args[0]
+		if _, err := hex.DecodeString(xprv); err != nil || len(xprv) != 128 {
+			fmt.Println("The part field of xprv is invalid:", xprv)
+			os.Exit(0)
+		}
+
+		message := args[1]
+		if _, err := hex.DecodeString(message); err != nil || len(message) != 64 {
+			fmt.Println("The part field of message is invalid:", message)
+			os.Exit(0)
+		}
+
+		res, err := swap.SignMsg(message, xprv)
+		if err != nil {
+			fmt.Println("sign message err:", err)
+			os.Exit(0)
+		}
+
+		fmt.Printf("\nsign result:\n"+
+			"xprv: %s\n"+
+			"message: %s\n"+
+			"signature: %s\n",
+			xprv, message, res)
+	},
+}
+
 var callTradeoffCmd = &cobra.Command{
 	Use:   "callTradeoff <accountID> <password> <buyer-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
 	Short: "call tradeoff contract for asset swapping",

@@ -26,6 +26,7 @@ func main() {
 	swapCmd.AddCommand(cancelHTLCCmd)
 	swapCmd.AddCommand(equityCmd)
 	swapCmd.AddCommand(buildTxCmd)
+	swapCmd.AddCommand(signMessageCmd)
 	if err := swapCmd.Execute(); err != nil {
 		os.Exit(0)
 	}

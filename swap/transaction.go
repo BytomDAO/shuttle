@@ -186,8 +186,8 @@ func submitPayment(s *Server, guid, rawTx, memo string, sigs [][]string) (string
 	return res.TxID, nil
 }
 
-// signMessage sign message, return sig.
-func signMsg(signData, xprv string) (string, error) {
+// SignMsg sign message, return sig.
+func SignMsg(signData, xprv string) (string, error) {
 	xprvBytes, err := hex.DecodeString(xprv)
 	if err != nil {
 		return "", err
