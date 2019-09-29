@@ -175,19 +175,19 @@ var buildTxCmd = &cobra.Command{
 		}
 
 		outputID := args[1]
-		if len(outputID) != 64 {
+		if _, err := hex.DecodeString(outputID); err != nil || len(outputID) != 64 {
 			fmt.Println("The part field of outputID is invalid:", outputID)
 			os.Exit(0)
 		}
 
 		lockedAsset := args[2]
-		if len(lockedAsset) != 64 {
+		if _, err := hex.DecodeString(lockedAsset); err != nil || len(lockedAsset) != 64 {
 			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
 			os.Exit(0)
 		}
 
 		contractProgram := args[3]
-		if len(contractProgram) == 0 {
+		if _, err := hex.DecodeString(contractProgram); err != nil || len(contractProgram) == 0 {
 			fmt.Println("The part field of contractProgram is invalid:", contractProgram)
 			os.Exit(0)
 		}
