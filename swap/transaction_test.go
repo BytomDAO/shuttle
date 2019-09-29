@@ -47,7 +47,7 @@ func TestBuildUnlockedTx(t *testing.T) {
 	receiver := "sm1qe5gne93c8wx75ualxkju5yyec20j54ynjxd8zj" // account a4
 	contractAmount := uint64(100)
 
-	buildTxResp, err := buildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+	buildTxResp, err := BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
 	if err != nil {
 		fmt.Println(err)
 	}

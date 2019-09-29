@@ -26,16 +26,16 @@ func init() {
 	deployTradeoffCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	deployTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
-	// deploy HTLC contract arguments
-	deployHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
-	deployHTLCCmd.PersistentFlags().StringVar(&senderPublicKey, "sender", "", "HTLC contract paramenter with sender PublicKey")
-	deployHTLCCmd.PersistentFlags().StringVar(&recipientPublicKey, "recipient", "", "HTLC contract paramenter with recipientPublicKey")
-	deployHTLCCmd.PersistentFlags().Uint64Var(&blockHeight, "blockHeight", 0, "HTLC contract locked value with blockHeight")
-	deployHTLCCmd.PersistentFlags().StringVar(&hash, "hash", "", "HTLC contract locked value with hash")
-	deployHTLCCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "HTLC contract locked value with assetID")
-	deployHTLCCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "HTLC contract locked value with amount")
-	deployHTLCCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	deployHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
+	// // deploy HTLC contract arguments
+	// deployHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+	// deployHTLCCmd.PersistentFlags().StringVar(&senderPublicKey, "sender", "", "HTLC contract paramenter with sender PublicKey")
+	// deployHTLCCmd.PersistentFlags().StringVar(&recipientPublicKey, "recipient", "", "HTLC contract paramenter with recipientPublicKey")
+	// deployHTLCCmd.PersistentFlags().Uint64Var(&blockHeight, "blockHeight", 0, "HTLC contract locked value with blockHeight")
+	// deployHTLCCmd.PersistentFlags().StringVar(&hash, "hash", "", "HTLC contract locked value with hash")
+	// deployHTLCCmd.PersistentFlags().StringVar(&assetLocked, "assetLocked", "", "HTLC contract locked value with assetID")
+	// deployHTLCCmd.PersistentFlags().Uint64Var(&amountLocked, "amountLocked", 0, "HTLC contract locked value with amount")
+	// deployHTLCCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	// deployHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// call contract arguments
 	callTradeoffCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
@@ -64,9 +64,9 @@ func init() {
 	equityCmd.PersistentFlags().BoolVar(&ast, strAst, false, "AST of the contracts.")
 	equityCmd.PersistentFlags().BoolVar(&version, strVersion, false, "Version of equity compiler.")
 
-	// build deploy contract tx
-	buildTxCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
-	buildTxCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
+	// build deploy htlc contract tx
+	deployHTLCCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
+	deployHTLCCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
 
 	// submit tx
 	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOSig, "spendUTXOSig", "", "spend UTXO Signature")
@@ -177,7 +177,7 @@ var deployTradeoffCmd = &cobra.Command{
 	},
 }
 
-var buildTxCmd = &cobra.Command{
+var deployHTLCCmd = &cobra.Command{
 	Use:   "build <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
 	Short: "build contract",
 	Args:  cobra.ExactArgs(5),
@@ -319,6 +319,62 @@ var submitPaymentCmd = &cobra.Command{
 	},
 }
 
+var buildCallHTLCCmd = &cobra.Command{
+	Use:   "buildcallhtlc <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
+	Short: "build call HTLC contract transaction",
+	Args:  cobra.ExactArgs(5),
+	Run: func(cmd *cobra.Command, args []string) {
+		guid := args[0]
+		if len(guid) == 0 {
+			fmt.Println("The part field of guid is invalid:", guid)
+			os.Exit(0)
+		}
+
+		contractUTXOID := args[1]
+		if _, err := hex.DecodeString(contractUTXOID); err != nil || len(contractUTXOID) != 64 {
+			fmt.Println("The part field of contractUTXOID is invalid:", contractUTXOID)
+			os.Exit(0)
+		}
+
+		contractAsset := args[2]
+		if _, err := hex.DecodeString(contractAsset); err != nil || len(contractAsset) != 64 {
+			fmt.Println("The part field of contractAsset is invalid:", contractAsset)
+			os.Exit(0)
+		}
+
+		receiver := args[3]
+		if len(receiver) == 0 {
+			fmt.Println("The part field of receiver is invalid:", receiver)
+			os.Exit(0)
+		}
+
+		spendWalletAmount, err := strconv.ParseUint(args[4], 10, 64)
+		if err != nil {
+			fmt.Println("parse spend wallet amount err:", err)
+			os.Exit(0)
+		}
+
+		contractAmount, err := strconv.ParseUint(args[5], 10, 64)
+		if err != nil {
+			fmt.Println("parse contract amount err:", err)
+			os.Exit(0)
+		}
+
+		server := &swap.Server{
+			IP:   ip,
+			Port: port,
+		}
+
+		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+		if err != nil {
+			fmt.Println("build call htlc tx err:", err)
+			os.Exit(0)
+		}
+
+		fmt.Println("build call htlc tx result:", res)
+	},
+}
+
 var callTradeoffCmd = &cobra.Command{
 	Use:   "callTradeoff <accountID> <password> <buyer-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
 	Short: "call tradeoff contract for asset swapping",
@@ -391,54 +447,54 @@ var cancelTradeoffCmd = &cobra.Command{
 	},
 }
 
-var deployHTLCCmd = &cobra.Command{
-	Use:   "deployHTLC <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)]",
-	Short: "deploy HTLC contract",
-	Args:  cobra.ExactArgs(2),
-	Run: func(cmd *cobra.Command, args []string) {
-		account := swap.AccountInfo{
-			AccountID: args[0],
-			Password:  args[1],
-			TxFee:     txFee,
-		}
-		if len(account.AccountID) == 0 || len(account.Password) == 0 {
-			fmt.Println("The part field of the structure AccountInfo is empty:", account)
-			os.Exit(0)
-		}
+// var deployHTLCCmd = &cobra.Command{
+// 	Use:   "deployHTLC <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)]",
+// 	Short: "deploy HTLC contract",
+// 	Args:  cobra.ExactArgs(2),
+// 	Run: func(cmd *cobra.Command, args []string) {
+// 		account := swap.AccountInfo{
+// 			AccountID: args[0],
+// 			Password:  args[1],
+// 			TxFee:     txFee,
+// 		}
+// 		if len(account.AccountID) == 0 || len(account.Password) == 0 {
+// 			fmt.Println("The part field of the structure AccountInfo is empty:", account)
+// 			os.Exit(0)
+// 		}
 
-		contractArgs := swap.HTLCContractArgs{
-			SenderPublicKey:    senderPublicKey,
-			RecipientPublicKey: recipientPublicKey,
-			BlockHeight:        blockHeight,
-			Hash:               hash,
-		}
-		if len(contractArgs.SenderPublicKey) == 0 || len(contractArgs.RecipientPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) || len(contractArgs.Hash) == 0 {
-			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
-			os.Exit(0)
-		}
+// 		contractArgs := swap.HTLCContractArgs{
+// 			SenderPublicKey:    senderPublicKey,
+// 			RecipientPublicKey: recipientPublicKey,
+// 			BlockHeight:        blockHeight,
+// 			Hash:               hash,
+// 		}
+// 		if len(contractArgs.SenderPublicKey) == 0 || len(contractArgs.RecipientPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) || len(contractArgs.Hash) == 0 {
+// 			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+// 			os.Exit(0)
+// 		}
 
-		contractValue := swap.AssetAmount{
-			Asset:  assetLocked,
-			Amount: amountLocked,
-		}
-		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
-			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
-			os.Exit(0)
-		}
+// 		contractValue := swap.AssetAmount{
+// 			Asset:  assetLocked,
+// 			Amount: amountLocked,
+// 		}
+// 		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
+// 			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
+// 			os.Exit(0)
+// 		}
 
-		server := &swap.Server{
-			IP:   ip,
-			Port: port,
-		}
+// 		server := &swap.Server{
+// 			IP:   ip,
+// 			Port: port,
+// 		}
 
-		contractUTXOID, err := swap.DeployHTLCContract(server, account, contractValue, contractArgs)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(0)
-		}
-		fmt.Println("--> contractUTXOID:", contractUTXOID)
-	},
-}
+// 		contractUTXOID, err := swap.DeployHTLCContract(server, account, contractValue, contractArgs)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			os.Exit(0)
+// 		}
+// 		fmt.Println("--> contractUTXOID:", contractUTXOID)
+// 	},
+// }
 
 var callHTLCCmd = &cobra.Command{
 	Use:   "callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",

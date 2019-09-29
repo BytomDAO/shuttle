@@ -207,8 +207,8 @@ func SignMsg(signData, xprv string) (string, error) {
 	return hex.EncodeToString(sig), nil
 }
 
-// buildUnlockedTx build unlocked contract tx.
-func buildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, spendWalletAmount, contractAmount uint64) (string, error) {
+// BuildUnlockedTx build unlocked contract tx.
+func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, spendWalletAmount, contractAmount uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
