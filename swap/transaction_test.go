@@ -165,7 +165,7 @@ func TestSubmitCallTradeoffPayment(t *testing.T) {
 }
 
 func TestSignMsg(t *testing.T) {
-	signData := "6b2c56ad857c98b602ea2211641c94b5e7979214b418777b359d9cc3856f7f12"
+	signData := "1ea87696b53edfb37b4f9dfa42de796bdbf61330d484aab312dffd33d4312587"
 	xprv := "682d87647c76edafb0c0bdb8b9a87e84f79627c86a4d7620c89a9ef7551ecf47013095e747f609c86703ee7c0281b2182dfaca66d60ea58814d7929e6b6968a5"
 	sig, err := signMsg(signData, xprv)
 	if err != nil {

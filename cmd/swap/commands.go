@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/equity/compiler"
 	equ "github.com/equity/equity/util"
@@ -71,7 +72,7 @@ func init() {
 var (
 	txFee = uint64(0)
 	ip    = "127.0.0.1"
-	port  = "9888"
+	port  = "3000"
 
 	// contract paramenters
 	assetRequested  = ""
@@ -192,7 +193,7 @@ var buildTxCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		lockedAmount, err := swap.ParseUint64(args[4])
+		lockedAmount, err := strconv.ParseUint(args[4], 10, 64)
 		if err != nil {
 			fmt.Println("parse locked amount err:", err)
 			os.Exit(0)
