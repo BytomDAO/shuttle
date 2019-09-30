@@ -51,6 +51,8 @@ func init() {
 	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOPublicKey, "spendUTXOPublicKey", "", "spend UTXO PublicKey")
 	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSig, "spendWalletSig", "", "spend Wallet Signature")
 	submitPaymentCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "preimage")
+	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSigForFee, "spendWalletSigForFee", "", "spendWalletSigForFee")
+	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSigForContract, "spendWalletSigForContract", "", "spendWalletSigForContract")
 	submitPaymentCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	submitPaymentCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
 }
@@ -75,9 +77,11 @@ var (
 	buyer          = ""
 
 	//
-	spendUTXOSig       = ""
-	spendUTXOPublicKey = ""
-	spendWalletSig     = ""
+	spendUTXOSig              = ""
+	spendUTXOPublicKey        = ""
+	spendWalletSig            = ""
+	spendWalletSigForFee      = ""
+	spendWalletSigForContract = ""
 )
 
 var (
@@ -504,7 +508,8 @@ var submitPaymentCmd = &cobra.Command{
 			}
 
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, spendUTXOPublicKey)
-
+			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		case "callHTLC":
 			if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
 				fmt.Println("The part field of preimage is invalid:", preimage)
@@ -522,7 +527,8 @@ var submitPaymentCmd = &cobra.Command{
 			}
 
 			spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
-
+			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		case "cancelHTLC":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
@@ -535,7 +541,8 @@ var submitPaymentCmd = &cobra.Command{
 			}
 
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
-
+			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		case "deployTradeoff":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
@@ -548,7 +555,37 @@ var submitPaymentCmd = &cobra.Command{
 			}
 
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig)
+			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		case "callTradeoff":
+			if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
+				fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
+				os.Exit(0)
+			}
 
+			if _, err := hex.DecodeString(spendWalletSigForContract); err != nil || len(spendWalletSigForContract) != 128 {
+				fmt.Println("The part field of spendWalletSigForContract is invalid:", spendWalletSigForContract)
+				os.Exit(0)
+			}
+
+			spendUTXOSignatures = append(spendUTXOSignatures, "")
+			spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
+			spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
+			sigs = append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
+		case "cancelTradeoff":
+			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+				os.Exit(0)
+			}
+
+			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+				os.Exit(0)
+			}
+
+			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
+			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		default:
 			fmt.Println("action is invalid:", action)
 			os.Exit(0)
