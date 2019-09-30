@@ -43,7 +43,7 @@ func init() {
 	callTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// call HTLC contract arguments
-	callHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
+	callHTLCCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "preimage of hash")
 	callHTLCCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	callHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
@@ -296,6 +296,24 @@ var submitPaymentCmd = &cobra.Command{
 			}
 
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, spendUTXOPublicKey)
+
+		case "callHTLC":
+			if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
+				fmt.Println("The part field of preimage is invalid:", preimage)
+				os.Exit(0)
+			}
+
+			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+				os.Exit(0)
+			}
+
+			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+				os.Exit(0)
+			}
+
+			spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
 
 		default:
 			fmt.Println("action is invalid:", action)
