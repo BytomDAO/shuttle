@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	errXPrvLength = errors.New("XPrv length is invalid.")
+	errXPrvLength              = errors.New("XPrv length is invalid.")
+	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
 )
 
 const (
