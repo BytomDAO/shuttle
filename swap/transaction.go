@@ -284,8 +284,8 @@ func submitUnlockedPayment(s *Server, guid, rawTx, memo, spendWalletSig string, 
 	return res.TxID, nil
 }
 
-// buildCallTradeoffTx build unlocked tradeoff contract tx.
-func buildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested string, spendWalletAmount, contractAmount, amountRequested uint64) (*buildTxResp, error) {
+// BuildCallTradeoffTx build unlocked tradeoff contract tx.
+func BuildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested string, spendWalletAmount, contractAmount, amountRequested uint64) (*buildTxResp, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
