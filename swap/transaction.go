@@ -15,11 +15,8 @@ var (
 )
 
 type TxOutput struct {
-	UTXOID      string `json:"utxo_id"`
-	Script      string `json:"script"`
-	Address     string `json:"address"`
-	AssetID     string `json:"asset"`
-	AssetAmount uint64 `json:"amount"`
+	UTXOID string `json:"utxo_id"`
+	Script string `json:"script"`
 }
 
 type getTxReq struct {
@@ -182,8 +179,8 @@ func SubmitPayment(s *Server, guid, rawTx, memo string, sigs [][]string) (string
 	return res.TxID, nil
 }
 
-// SignMsg sign message, return sig.
-func SignMsg(signData, xprv string) (string, error) {
+// SignMessage sign message, return sig.
+func SignMessage(signData, xprv string) (string, error) {
 	xprvBytes, err := hex.DecodeString(xprv)
 	if err != nil {
 		return "", err

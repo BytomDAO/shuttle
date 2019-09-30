@@ -455,7 +455,7 @@ var signMessageCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		res, err := swap.SignMsg(message, xprv)
+		res, err := swap.SignMessage(message, xprv)
 		if err != nil {
 			fmt.Println("sign message err:", err)
 			os.Exit(0)
