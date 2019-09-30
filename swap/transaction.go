@@ -14,11 +14,6 @@ var (
 	errFailedGetContractUTXOID = errors.New("Failed to get contract UTXO ID")
 )
 
-const (
-	fee           = uint64(40000000)
-	confirmations = uint64(1)
-)
-
 type TxOutput struct {
 	UTXOID      string `json:"utxo_id"`
 	Script      string `json:"script"`
@@ -257,32 +252,6 @@ func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 	}
 
 	return string(r), nil
-}
-
-// submitUnlockedPayment submit raw transaction and return transaction ID.
-func submitUnlockedPayment(s *Server, guid, rawTx, memo, spendWalletSig string, spendUTXOSignatures []string) (string, error) {
-	// spendUTXOSignatures := append([]string{}, preimage, spendUTXOSig, "")
-	spendWalletSignatures := append([]string{}, spendWalletSig)
-	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
-
-	payload, err := json.Marshal(submitPaymentReq{
-		GUID:       guid,
-		RawTx:      rawTx,
-		Signatures: sigs,
-		Memo:       memo,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	fmt.Println("submitUnlockedPayment:", string(payload))
-
-	res := new(submitPaymentResp)
-	if err := s.request(submitTransactionURL, payload, res); err != nil {
-		return "", err
-	}
-
-	return res.TxID, nil
 }
 
 // BuildCallTradeoffTx build unlocked tradeoff contract tx.
