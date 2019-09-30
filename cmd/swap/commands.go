@@ -53,7 +53,6 @@ func init() {
 	cancelTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// cancel HTLC contract arguments
-	cancelHTLCCmd.PersistentFlags().Uint64Var(&txFee, "txFee", 40000000, "contract transaction fee")
 	cancelHTLCCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	cancelHTLCCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
@@ -178,8 +177,8 @@ var deployTradeoffCmd = &cobra.Command{
 }
 
 var deployHTLCCmd = &cobra.Command{
-	Use:   "build <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
-	Short: "build contract",
+	Use:   "deployhtlc <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
+	Short: "deploy HTLC contract",
 	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
@@ -319,9 +318,9 @@ var submitPaymentCmd = &cobra.Command{
 	},
 }
 
-var buildCallHTLCCmd = &cobra.Command{
-	Use:   "buildcallhtlc <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
-	Short: "build call HTLC contract transaction",
+var callHTLCCmd = &cobra.Command{
+	Use:   "callhtlc <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
+	Short: "call HTLC contract transaction",
 	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
@@ -447,90 +446,41 @@ var cancelTradeoffCmd = &cobra.Command{
 	},
 }
 
-// var deployHTLCCmd = &cobra.Command{
-// 	Use:   "deployHTLC <accountID> <password> [contract flags(paramenters and locked value)] [txFee flag] [URL flags(ip and port)]",
-// 	Short: "deploy HTLC contract",
-// 	Args:  cobra.ExactArgs(2),
+// var callHTLCCmd = &cobra.Command{
+// 	Use:   "callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
+// 	Short: "call HTLC contract for asset swapping",
+// 	Args:  cobra.ExactArgs(5),
 // 	Run: func(cmd *cobra.Command, args []string) {
 // 		account := swap.AccountInfo{
 // 			AccountID: args[0],
 // 			Password:  args[1],
+// 			Receiver:  args[2],
 // 			TxFee:     txFee,
 // 		}
-// 		if len(account.AccountID) == 0 || len(account.Password) == 0 {
-// 			fmt.Println("The part field of the structure AccountInfo is empty:", account)
+// 		if len(account.AccountID) == 0 || len(account.Password) == 0 || len(account.Receiver) == 0 {
+// 			fmt.Println("The part field of the structure Account is empty:", account)
 // 			os.Exit(0)
 // 		}
 
-// 		contractArgs := swap.HTLCContractArgs{
-// 			SenderPublicKey:    senderPublicKey,
-// 			RecipientPublicKey: recipientPublicKey,
-// 			BlockHeight:        blockHeight,
-// 			Hash:               hash,
-// 		}
-// 		if len(contractArgs.SenderPublicKey) == 0 || len(contractArgs.RecipientPublicKey) == 0 || contractArgs.BlockHeight == uint64(0) || len(contractArgs.Hash) == 0 {
-// 			fmt.Println("The part field of the structure ContractArgs is empty:", contractArgs)
+// 		contractUTXOID := args[4]
+// 		if len(contractUTXOID) == 0 {
+// 			fmt.Println("contract utxoID is empty:", contractUTXOID)
 // 			os.Exit(0)
 // 		}
 
-// 		contractValue := swap.AssetAmount{
-// 			Asset:  assetLocked,
-// 			Amount: amountLocked,
-// 		}
-// 		if len(contractValue.Asset) == 0 || contractValue.Amount == uint64(0) {
-// 			fmt.Println("The part field of the structure ContractValue AssetAmount is empty:", contractValue)
-// 			os.Exit(0)
-// 		}
-
+// 		preimage := args[3]
 // 		server := &swap.Server{
 // 			IP:   ip,
 // 			Port: port,
 // 		}
-
-// 		contractUTXOID, err := swap.DeployHTLCContract(server, account, contractValue, contractArgs)
+// 		txID, err := swap.CallHTLCContract(server, account, contractUTXOID, preimage)
 // 		if err != nil {
 // 			fmt.Println(err)
 // 			os.Exit(0)
 // 		}
-// 		fmt.Println("--> contractUTXOID:", contractUTXOID)
+// 		fmt.Println("--> txID:", txID)
 // 	},
 // }
-
-var callHTLCCmd = &cobra.Command{
-	Use:   "callHTLC <accountID> <password> <buyer-program> <preimage> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
-	Short: "call HTLC contract for asset swapping",
-	Args:  cobra.ExactArgs(5),
-	Run: func(cmd *cobra.Command, args []string) {
-		account := swap.AccountInfo{
-			AccountID: args[0],
-			Password:  args[1],
-			Receiver:  args[2],
-			TxFee:     txFee,
-		}
-		if len(account.AccountID) == 0 || len(account.Password) == 0 || len(account.Receiver) == 0 {
-			fmt.Println("The part field of the structure Account is empty:", account)
-			os.Exit(0)
-		}
-
-		contractUTXOID := args[4]
-		if len(contractUTXOID) == 0 {
-			fmt.Println("contract utxoID is empty:", contractUTXOID)
-			os.Exit(0)
-		}
-
-		preimage := args[3]
-		server := &swap.Server{
-			IP:   ip,
-			Port: port,
-		}
-		txID, err := swap.CallHTLCContract(server, account, contractUTXOID, preimage)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(0)
-		}
-		fmt.Println("--> txID:", txID)
-	},
-}
 
 var cancelHTLCCmd = &cobra.Command{
 	Use:   "cancelHTLC <accountID> <password> <redeem-program> <contractUTXOID> [txFee flag] [URL flags(ip and port)]",
