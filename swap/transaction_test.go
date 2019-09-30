@@ -120,7 +120,7 @@ func TestSubmitCancelHTLCPayment(t *testing.T) {
 	spendUTXOSig := "84fa1ef1b5ec3ae07c616999323671d03392d994f317545c3c130d2a2eb2fe1110fb92f00e47e61f76f0b168c871eb4d66c77169795cd0fd05517e29f0f79505"
 	spendWalletSig := "54d73d6d4b5ee8c5d675e347767e50784b8eafe3b80dae3bf054e70a4fb29bde964d37e514ff67af904b687feeaeaea21c48b4169fdc88d133d9aaf0c2c8070b"
 
-	spendUTXOSignatures := append([]string{}, spendUTXOSig)
+	spendUTXOSignatures := append([]string{}, spendUTXOSig, "01") // ????
 	spendWalletSignatures := append([]string{}, spendWalletSig)
 	sigs := append([][]string{}, spendUTXOSignatures, spendWalletSignatures)
 	txID, err := SubmitPayment(server, guid, rawTx, memo, sigs)
