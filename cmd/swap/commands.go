@@ -442,7 +442,7 @@ var signMessageCmd = &cobra.Command{
 var submitPaymentCmd = &cobra.Command{
 	Use:   "submit <action> <guid> <rawTx> [spend parameters] [URL flags(ip and port)]",
 	Short: "submit a payment",
-	Args:  cobra.ExactArgs(3),
+	Args:  cobra.MinimumNArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
 		action := args[0]
 		guid := args[1]
@@ -457,117 +457,106 @@ var submitPaymentCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		spendUTXOSignatures := []string{}
-		spendWalletSignatures := []string{}
-		sigs := [][]string{}
+		// witness_arguments
+		wa := []string{}
+		was := [][]string{}
+
 		switch action {
 		case "deployhtlc":
-			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-				os.Exit(0)
+			spendParametersNum := len(args) - 3
+			for i := 0; i < spendParametersNum; i++ {
+				wa = append(wa, args[3+i])
+				was = append(was, wa)
+				wa = []string{}
 			}
+		// case "callhtlc":
+		// 	if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
+		// 		fmt.Println("The part field of preimage is invalid:", preimage)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendUTXOPublicKey); err != nil || len(spendUTXOPublicKey) != 64 {
-				fmt.Println("The part field of spendUTXOPublicKey is invalid:", spendUTXOPublicKey)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+		// 		os.Exit(0)
+		// 	}
 
-			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, spendUTXOPublicKey)
-			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "callhtlc":
-			if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
-				fmt.Println("The part field of preimage is invalid:", preimage)
-				os.Exit(0)
-			}
+		// 	spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
+		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		// case "cancelhtlc":
+		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-				os.Exit(0)
-			}
+		// 	spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
+		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		// case "deploytradeoff":
+		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+		// 		os.Exit(0)
+		// 	}
 
-			spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
-			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "cancelhtlc":
-			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-				os.Exit(0)
-			}
+		// 	spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig)
+		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		// case "calltradeoff":
+		// 	if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
+		// 		fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
+		// 		os.Exit(0)
+		// 	}
 
-			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
-			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "deploytradeoff":
-			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendWalletSigForContract); err != nil || len(spendWalletSigForContract) != 128 {
+		// 		fmt.Println("The part field of spendWalletSigForContract is invalid:", spendWalletSigForContract)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-				os.Exit(0)
-			}
+		// 	spendUTXOSignatures = append(spendUTXOSignatures, "")
+		// 	spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
+		// 	spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
+		// 	sigs = append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
+		// case "canceltradeoff":
+		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
+		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
+		// 		os.Exit(0)
+		// 	}
 
-			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig)
-			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "calltradeoff":
-			if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
-				fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
-				os.Exit(0)
-			}
+		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
+		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
+		// 		os.Exit(0)
+		// 	}
 
-			if _, err := hex.DecodeString(spendWalletSigForContract); err != nil || len(spendWalletSigForContract) != 128 {
-				fmt.Println("The part field of spendWalletSigForContract is invalid:", spendWalletSigForContract)
-				os.Exit(0)
-			}
-
-			spendUTXOSignatures = append(spendUTXOSignatures, "")
-			spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
-			spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
-			sigs = append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
-		case "canceltradeoff":
-			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-				os.Exit(0)
-			}
-
-			if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-				fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-				os.Exit(0)
-			}
-
-			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
-			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		// 	spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
+		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		default:
 			fmt.Println("action is invalid:", action)
 			os.Exit(0)
 		}
-		spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-		sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		// spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
+		// sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 
 		server := &swap.Server{
 			IP:   ip,
 			Port: port,
 		}
-		res, err := swap.SubmitPayment(server, guid, rawTx, "", sigs)
+		res, err := swap.SubmitPayment(server, guid, rawTx, "", was)
 		if err != nil {
 			fmt.Println("submit tx err:", err)
 			os.Exit(0)
