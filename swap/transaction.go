@@ -97,16 +97,12 @@ type buildTxResp struct {
 }
 
 // BuildTx build tx.
-func BuildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, lockedAmount uint64) (string, error) {
+func BuildTx(s *Server, guid, lockedAsset, contractProgram string, lockedAmount uint64) (string, error) {
 	// inputs:
-	spendUTXOInput := SpendUTXOInput{
-		Type:     "spend_utxo",
-		OutputID: outputID,
-	}
 	spendWalletInput := SpendWalletInput{
 		Type:    "spend_wallet",
-		AssetID: BTMAssetID,
-		Amount:  fee,
+		AssetID: lockedAsset,
+		Amount:  lockedAmount,
 	}
 
 	// outputs:
@@ -118,7 +114,7 @@ func BuildTx(s *Server, guid, outputID, lockedAsset, contractProgram string, loc
 	}
 
 	var inputs, outputs []interface{}
-	inputs = append(inputs, spendUTXOInput, spendWalletInput)
+	inputs = append(inputs, spendWalletInput)
 	outputs = append(outputs, controlProgramOutput)
 	payload, err := json.Marshal(buildTxReq{
 		GUID:          guid,
@@ -201,7 +197,7 @@ func SignMessage(signData, xprv string) (string, error) {
 }
 
 // BuildUnlockedTx build unlocked contract tx.
-func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, spendWalletAmount, contractAmount uint64) (string, error) {
+func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, contractAmount uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
@@ -210,8 +206,8 @@ func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 
 	spendWalletInput := SpendWalletInput{
 		Type:    "spend_wallet",
-		AssetID: BTMAssetID,
-		Amount:  spendWalletAmount,
+		AssetID: contractAsset,
+		Amount:  contractAmount,
 	}
 
 	// outputs:

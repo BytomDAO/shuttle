@@ -109,9 +109,9 @@ var (
 )
 
 var deployHTLCCmd = &cobra.Command{
-	Use:   "deployhtlc <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
+	Use:   "deployhtlc <guid> <lockedAsset> <lockedAmount> <contractProgram> [URL flags(ip and port)]",
 	Short: "deploy HTLC contract",
-	Args:  cobra.ExactArgs(5),
+	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
 		if len(guid) == 0 {
@@ -119,15 +119,15 @@ var deployHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		outputID := args[1]
-		if _, err := hex.DecodeString(outputID); err != nil || len(outputID) != 64 {
-			fmt.Println("The part field of outputID is invalid:", outputID)
+		lockedAsset := args[1]
+		if _, err := hex.DecodeString(lockedAsset); err != nil || len(lockedAsset) != 64 {
+			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
 			os.Exit(0)
 		}
 
-		lockedAsset := args[2]
-		if _, err := hex.DecodeString(lockedAsset); err != nil || len(lockedAsset) != 64 {
-			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
+		lockedAmount, err := strconv.ParseUint(args[2], 10, 64)
+		if err != nil {
+			fmt.Println("parse locked amount err:", err)
 			os.Exit(0)
 		}
 
@@ -137,18 +137,12 @@ var deployHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		lockedAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse locked amount err:", err)
-			os.Exit(0)
-		}
-
 		server := &swap.Server{
 			IP:   ip,
 			Port: port,
 		}
 
-		res, err := swap.BuildTx(server, guid, outputID, lockedAsset, contractProgram, lockedAmount)
+		res, err := swap.BuildTx(server, guid, lockedAsset, contractProgram, lockedAmount)
 		if err != nil {
 			fmt.Println("build tx err:", err)
 			os.Exit(0)
@@ -159,9 +153,9 @@ var deployHTLCCmd = &cobra.Command{
 }
 
 var callHTLCCmd = &cobra.Command{
-	Use:   "callhtlc <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
+	Use:   "callhtlc <guid> <contractUTXOID> <contractAsset> <contractAmount> <receiver> [URL flags(ip and port)]",
 	Short: "call HTLC contract",
-	Args:  cobra.ExactArgs(6),
+	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
 		if len(guid) == 0 {
@@ -181,21 +175,15 @@ var callHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		receiver := args[3]
-		if len(receiver) == 0 {
-			fmt.Println("The part field of receiver is invalid:", receiver)
-			os.Exit(0)
-		}
-
-		spendWalletAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse spend wallet amount err:", err)
-			os.Exit(0)
-		}
-
-		contractAmount, err := strconv.ParseUint(args[5], 10, 64)
+		contractAmount, err := strconv.ParseUint(args[3], 10, 64)
 		if err != nil {
 			fmt.Println("parse contract amount err:", err)
+			os.Exit(0)
+		}
+
+		receiver := args[4]
+		if len(receiver) == 0 {
+			fmt.Println("The part field of receiver is invalid:", receiver)
 			os.Exit(0)
 		}
 
@@ -204,7 +192,7 @@ var callHTLCCmd = &cobra.Command{
 			Port: port,
 		}
 
-		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, contractAmount)
 		if err != nil {
 			fmt.Println("build call htlc tx err:", err)
 			os.Exit(0)
@@ -215,9 +203,9 @@ var callHTLCCmd = &cobra.Command{
 }
 
 var cancelHTLCCmd = &cobra.Command{
-	Use:   "cancelhtlc <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
+	Use:   "cancelhtlc <guid> <contractUTXOID> <contractAsset> <contractAmount> <receiver> [URL flags(ip and port)]",
 	Short: "cancel HTLC contract",
-	Args:  cobra.ExactArgs(6),
+	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
 		if len(guid) == 0 {
@@ -237,21 +225,15 @@ var cancelHTLCCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		receiver := args[3]
-		if len(receiver) == 0 {
-			fmt.Println("The part field of receiver is invalid:", receiver)
-			os.Exit(0)
-		}
-
-		spendWalletAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse spend wallet amount err:", err)
-			os.Exit(0)
-		}
-
-		contractAmount, err := strconv.ParseUint(args[5], 10, 64)
+		contractAmount, err := strconv.ParseUint(args[3], 10, 64)
 		if err != nil {
 			fmt.Println("parse contract amount err:", err)
+			os.Exit(0)
+		}
+
+		receiver := args[4]
+		if len(receiver) == 0 {
+			fmt.Println("The part field of receiver is invalid:", receiver)
 			os.Exit(0)
 		}
 
@@ -260,7 +242,7 @@ var cancelHTLCCmd = &cobra.Command{
 			Port: port,
 		}
 
-		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, contractAmount)
 		if err != nil {
 			fmt.Println("build call htlc tx err:", err)
 			os.Exit(0)
@@ -271,9 +253,9 @@ var cancelHTLCCmd = &cobra.Command{
 }
 
 var deployTradeoffCmd = &cobra.Command{
-	Use:   "deploytradeoff <guid> <outputID> <lockedAsset> <contractProgram> <lockedAmount> [URL flags(ip and port)]",
+	Use:   "deploytradeoff <guid> <lockedAsset> <lockedAmount> <contractProgram> [URL flags(ip and port)]",
 	Short: "deploy tradeoff contract",
-	Args:  cobra.ExactArgs(5),
+	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
 		if len(guid) == 0 {
@@ -281,15 +263,15 @@ var deployTradeoffCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		outputID := args[1]
-		if _, err := hex.DecodeString(outputID); err != nil || len(outputID) != 64 {
-			fmt.Println("The part field of outputID is invalid:", outputID)
+		lockedAsset := args[1]
+		if _, err := hex.DecodeString(lockedAsset); err != nil || len(lockedAsset) != 64 {
+			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
 			os.Exit(0)
 		}
 
-		lockedAsset := args[2]
-		if _, err := hex.DecodeString(lockedAsset); err != nil || len(lockedAsset) != 64 {
-			fmt.Println("The part field of lockedAsset is invalid:", lockedAsset)
+		lockedAmount, err := strconv.ParseUint(args[2], 10, 64)
+		if err != nil {
+			fmt.Println("parse locked amount err:", err)
 			os.Exit(0)
 		}
 
@@ -299,18 +281,12 @@ var deployTradeoffCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		lockedAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse locked amount err:", err)
-			os.Exit(0)
-		}
-
 		server := &swap.Server{
 			IP:   ip,
 			Port: port,
 		}
 
-		res, err := swap.BuildTx(server, guid, outputID, lockedAsset, contractProgram, lockedAmount)
+		res, err := swap.BuildTx(server, guid, lockedAsset, contractProgram, lockedAmount)
 		if err != nil {
 			fmt.Println("build tx err:", err)
 			os.Exit(0)
@@ -383,7 +359,7 @@ var callTradeoffCmd = &cobra.Command{
 }
 
 var cancelTradeoffCmd = &cobra.Command{
-	Use:   "canceltradeoff <guid> <contractUTXOID> <contractAsset> <receiver> <spendWalletAmount> <contractAmount> [URL flags(ip and port)]",
+	Use:   "canceltradeoff <guid> <contractUTXOID> <contractAsset> <contractAmount> <receiver> [URL flags(ip and port)]",
 	Short: "cancel tradeoff contract",
 	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -405,21 +381,15 @@ var cancelTradeoffCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		receiver := args[3]
-		if len(receiver) == 0 {
-			fmt.Println("The part field of receiver is invalid:", receiver)
-			os.Exit(0)
-		}
-
-		spendWalletAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse spend wallet amount err:", err)
-			os.Exit(0)
-		}
-
-		contractAmount, err := strconv.ParseUint(args[5], 10, 64)
+		contractAmount, err := strconv.ParseUint(args[3], 10, 64)
 		if err != nil {
 			fmt.Println("parse contract amount err:", err)
+			os.Exit(0)
+		}
+
+		receiver := args[4]
+		if len(receiver) == 0 {
+			fmt.Println("The part field of receiver is invalid:", receiver)
 			os.Exit(0)
 		}
 
@@ -428,7 +398,7 @@ var cancelTradeoffCmd = &cobra.Command{
 			Port: port,
 		}
 
-		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+		res, err := swap.BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, contractAmount)
 		if err != nil {
 			fmt.Println("build call htlc tx err:", err)
 			os.Exit(0)
@@ -491,7 +461,7 @@ var submitPaymentCmd = &cobra.Command{
 		spendWalletSignatures := []string{}
 		sigs := [][]string{}
 		switch action {
-		case "deployHTLC":
+		case "deployhtlc":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
 				os.Exit(0)
@@ -510,7 +480,7 @@ var submitPaymentCmd = &cobra.Command{
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, spendUTXOPublicKey)
 			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
 			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "callHTLC":
+		case "callhtlc":
 			if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
 				fmt.Println("The part field of preimage is invalid:", preimage)
 				os.Exit(0)
@@ -529,7 +499,7 @@ var submitPaymentCmd = &cobra.Command{
 			spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
 			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
 			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "cancelHTLC":
+		case "cancelhtlc":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
 				os.Exit(0)
@@ -543,7 +513,7 @@ var submitPaymentCmd = &cobra.Command{
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig, "01")
 			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
 			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "deployTradeoff":
+		case "deploytradeoff":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
 				os.Exit(0)
@@ -557,7 +527,7 @@ var submitPaymentCmd = &cobra.Command{
 			spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig)
 			spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
 			sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
-		case "callTradeoff":
+		case "calltradeoff":
 			if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
 				fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
 				os.Exit(0)
@@ -572,7 +542,7 @@ var submitPaymentCmd = &cobra.Command{
 			spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
 			spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
 			sigs = append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
-		case "cancelTradeoff":
+		case "canceltradeoff":
 			if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 				fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
 				os.Exit(0)

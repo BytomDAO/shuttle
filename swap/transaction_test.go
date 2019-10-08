@@ -25,12 +25,12 @@ func TestBuildTx(t *testing.T) {
 	guid := "e18b91ba-91a5-4837-9d41-ce2b76cea81c" // acount a1
 	// fee := uint64(40000000)
 	// confirmations := uint64(1)
-	outputID := "fa6e8ae89b3acdcfe8d8256c9adce856d87a658c0fe9c711136eca190b66c763"
+	// outputID := "fa6e8ae89b3acdcfe8d8256c9adce856d87a658c0fe9c711136eca190b66c763"
 	lockedAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
 	lockedAmount := uint64(100)
 	contractProgram := "20eec15ce68d46569f92ecebd7769101b22e34109892cc7ddfd54dc772f850c2431600145b0a81adc5c2d68a9967082a09c96e82d62aa058016420ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff741a547a6413000000007b7b51547ac1631a000000547a547aae7cac00c0"
 
-	buildTxResp, err := BuildTx(server, guid, outputID, lockedAsset, contractProgram, lockedAmount)
+	buildTxResp, err := BuildTx(server, guid, lockedAsset, contractProgram, lockedAmount)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -43,11 +43,11 @@ func TestBuildUnlockedTx(t *testing.T) {
 	// confirmations := uint64(1)
 	contractUTXOID := "dd5ebcbd1c8a9feaa82aad3b6d9b4c28784c4bd1d94acacce6156b47269dc429"
 	contractAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
-	spendWalletAmount := fee
+	// spendWalletAmount := fee
 	receiver := "sm1qe5gne93c8wx75ualxkju5yyec20j54ynjxd8zj" // account a4
 	contractAmount := uint64(100)
 
-	buildTxResp, err := BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, spendWalletAmount, contractAmount)
+	buildTxResp, err := BuildUnlockedTx(server, guid, contractUTXOID, contractAsset, receiver, contractAmount)
 	if err != nil {
 		fmt.Println(err)
 	}
