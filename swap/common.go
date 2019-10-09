@@ -11,8 +11,3 @@ const (
 	fee           = uint64(40000000)
 	confirmations = uint64(1)
 )
-
-type AssetAmount struct {
-	Asset  string
-	Amount uint64
-}

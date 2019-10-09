@@ -52,38 +52,8 @@ func init() {
 }
 
 var (
-	txFee = uint64(0)
-	ip    = "127.0.0.1"
-	port  = "3000"
-
-	// contract paramenters
-	assetRequested  = ""
-	amountRequested = uint64(0)
-	seller          = ""
-	cancelKey       = ""
-
-	// contract locked value
-	assetLocked  = ""
-	amountLocked = uint64(0)
-
-	// unlock contract paramenters
-	contractUTXOID = ""
-	buyer          = ""
-
-	//
-	spendUTXOSig              = ""
-	spendUTXOPublicKey        = ""
-	spendWalletSig            = ""
-	spendWalletSigForFee      = ""
-	spendWalletSigForContract = ""
-)
-
-var (
-	senderPublicKey    = ""
-	recipientPublicKey = ""
-	blockHeight        = uint64(0)
-	hash               = ""
-	preimage           = ""
+	ip   = "127.0.0.1"
+	port = "3000"
 )
 
 var (
