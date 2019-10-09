@@ -155,17 +155,17 @@ type submitPaymentResp struct {
 
 // SubmitPayment submit raw transaction and return transaction ID.
 func SubmitPayment(s *Server, guid, rawTx, memo string, sigs [][]string) (string, error) {
-	payload, err := json.Marshal(submitPaymentReq{
+	payload, err := json.MarshalIndent(submitPaymentReq{
 		GUID:       guid,
 		RawTx:      rawTx,
 		Signatures: sigs,
 		Memo:       memo,
-	})
+	}, "", "\t")
 	if err != nil {
 		return "", err
 	}
 
-	fmt.Println("submitPayment:", string(payload))
+	fmt.Println("\nsubmitPayment:", string(payload))
 
 	res := new(submitPaymentResp)
 	if err := s.request(submitTransactionURL, payload, res); err != nil {

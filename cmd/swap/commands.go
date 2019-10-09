@@ -494,20 +494,12 @@ var submitPaymentCmd = &cobra.Command{
 				was = append(was, wa)
 				wa = []string{}
 			}
-		// case "deploytradeoff":
-		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-		// 		os.Exit(0)
-		// 	}
-
-		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-		// 		os.Exit(0)
-		// 	}
-
-		// 	spendUTXOSignatures = append(spendUTXOSignatures, spendUTXOSig)
-		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
+		case "deploytradeoff":
+			for i := 3; i < len(args); i++ {
+				wa = append(wa, args[i])
+				was = append(was, wa)
+				wa = []string{}
+			}
 		// case "calltradeoff":
 		// 	if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
 		// 		fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
