@@ -62,11 +62,11 @@ func TestBuildCallTradeoffTx(t *testing.T) {
 	assetRequested := "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 	amountRequested := uint64(100)
 	// contractAsset := "bae7e17bb8f5d0cfbfd87a92f3204da082d388d4c9b10e8dcd36b3d0a18ceb3a"
-	spendWalletAmount := fee
+	// spendWalletAmount := fee
 	seller := "00145b0a81adc5c2d68a9967082a09c96e82d62aa058" // seller program
-	contractAmount := uint64(100)
+	// contractAmount := uint64(100)
 
-	buildTxResp, err := BuildCallTradeoffTx(server, guid, contractUTXOID, seller, assetRequested, spendWalletAmount, contractAmount, amountRequested)
+	buildTxResp, err := BuildCallTradeoffTx(server, guid, contractUTXOID, seller, assetRequested, amountRequested)
 	if err != nil {
 		fmt.Println(err)
 	}

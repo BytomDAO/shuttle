@@ -197,24 +197,18 @@ func SignMessage(signData, xprv string) (string, error) {
 }
 
 // BuildUnlockedTx build unlocked contract tx.
-func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver string, contractAmount uint64) (string, error) {
+func BuildUnlockedTx(s *Server, guid, contractUTXOID, lockedAsset, receiver string, lockedAmount uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
 		OutputID: contractUTXOID,
 	}
 
-	// spendWalletInput := SpendWalletInput{
-	// 	Type:    "spend_wallet",
-	// 	AssetID: contractAsset,
-	// 	Amount:  contractAmount,
-	// }
-
 	// outputs:
 	controlAddressOutput := ControlAddressOutput{
 		Type:    "control_address",
-		Amount:  contractAmount,
-		AssetID: contractAsset,
+		Amount:  lockedAmount,
+		AssetID: lockedAsset,
 		Address: receiver,
 	}
 
@@ -249,17 +243,11 @@ func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 }
 
 // BuildCallTradeoffTx build unlocked tradeoff contract tx.
-func BuildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested string, spendWalletAmount, contractAmount, amountRequested uint64) (*buildTxResp, error) {
+func BuildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested string, amountRequested uint64) (string, error) {
 	// inputs:
 	spendUTXOInput := SpendUTXOInput{
 		Type:     "spend_utxo",
 		OutputID: contractUTXOID,
-	}
-
-	spendWalletInput := SpendWalletInput{
-		Type:    "spend_wallet",
-		AssetID: BTMAssetID,
-		Amount:  spendWalletAmount,
 	}
 
 	spendWalletUnlockTradeoffInput := SpendWalletInput{
@@ -277,7 +265,7 @@ func BuildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested
 	}
 
 	var inputs, outputs []interface{}
-	inputs = append(inputs, spendUTXOInput, spendWalletInput, spendWalletUnlockTradeoffInput)
+	inputs = append(inputs, spendUTXOInput, spendWalletUnlockTradeoffInput)
 	outputs = append(outputs, controlProgramOutput)
 	payload, err := json.Marshal(buildTxReq{
 		GUID:          guid,
@@ -287,15 +275,20 @@ func BuildCallTradeoffTx(s *Server, guid, contractUTXOID, seller, assetRequested
 		Outputs:       outputs,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	fmt.Println("build unlocked contract tx:", string(payload))
 
 	res := new(buildTxResp)
 	if err := s.request(buildTransactionURL, payload, res); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return res, nil
+	r, err := json.MarshalIndent(res, "", "\t")
+	if err != nil {
+		return "", err
+	}
+
+	return string(r), nil
 }

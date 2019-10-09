@@ -291,9 +291,9 @@ var deployTradeoffCmd = &cobra.Command{
 }
 
 var callTradeoffCmd = &cobra.Command{
-	Use:   "calltradeoff <guid> <contractUTXOID> <assetRequested> <amountRequested> <spendWalletAmount> <seller> <contractAmount> [URL flags(ip and port)]",
+	Use:   "calltradeoff <guid> <contractUTXOID> <assetRequested> <amountRequested> <seller> [URL flags(ip and port)]",
 	Short: "call tradeoff contract",
-	Args:  cobra.ExactArgs(7),
+	Args:  cobra.ExactArgs(5),
 	Run: func(cmd *cobra.Command, args []string) {
 		guid := args[0]
 		if len(guid) == 0 {
@@ -319,21 +319,9 @@ var callTradeoffCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		spendWalletAmount, err := strconv.ParseUint(args[4], 10, 64)
-		if err != nil {
-			fmt.Println("parse spend wallet amount err:", err)
-			os.Exit(0)
-		}
-
-		seller := args[5]
+		seller := args[4]
 		if _, err := hex.DecodeString(seller); err != nil || len(seller) == 0 {
 			fmt.Println("The part field of seller is invalid:", seller)
-			os.Exit(0)
-		}
-
-		contractAmount, err := strconv.ParseUint(args[6], 10, 64)
-		if err != nil {
-			fmt.Println("parse contractAmount err:", err)
 			os.Exit(0)
 		}
 
@@ -342,7 +330,7 @@ var callTradeoffCmd = &cobra.Command{
 			Port: port,
 		}
 
-		res, err := swap.BuildCallTradeoffTx(server, guid, contractUTXOID, seller, assetRequested, spendWalletAmount, contractAmount, amountRequested)
+		res, err := swap.BuildCallTradeoffTx(server, guid, contractUTXOID, seller, assetRequested, amountRequested)
 		if err != nil {
 			fmt.Println("build call tradeoff tx err:", err)
 			os.Exit(0)
@@ -500,21 +488,22 @@ var submitPaymentCmd = &cobra.Command{
 				was = append(was, wa)
 				wa = []string{}
 			}
-		// case "calltradeoff":
-		// 	if _, err := hex.DecodeString(spendWalletSigForFee); err != nil || len(spendWalletSigForFee) != 128 {
-		// 		fmt.Println("The part field of spendWalletSigForFee is invalid:", spendWalletSigForFee)
-		// 		os.Exit(0)
-		// 	}
+		case "calltradeoff":
+			// callhtlc need 4 arguments at least
+			if len(args) < 4 {
+				fmt.Println("callhtlc need 4 arguments at least, len(args) is:", len(args))
+				os.Exit(0)
+			}
 
-		// 	if _, err := hex.DecodeString(spendWalletSigForContract); err != nil || len(spendWalletSigForContract) != 128 {
-		// 		fmt.Println("The part field of spendWalletSigForContract is invalid:", spendWalletSigForContract)
-		// 		os.Exit(0)
-		// 	}
+			wa = append(wa, "")
+			was = append(was, wa)
+			wa = []string{}
 
-		// 	spendUTXOSignatures = append(spendUTXOSignatures, "")
-		// 	spendWalletSignaturesForFee := append([]string{}, spendWalletSigForFee)
-		// 	spendWalletSignaturesForContract := append([]string{}, spendWalletSigForContract)
-		// 	sigs = append([][]string{}, spendUTXOSignatures, spendWalletSignaturesForFee, spendWalletSignaturesForContract)
+			for i := 3; i < len(args); i++ {
+				wa = append(wa, args[i])
+				was = append(was, wa)
+				wa = []string{}
+			}
 		// case "canceltradeoff":
 		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
