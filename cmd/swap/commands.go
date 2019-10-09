@@ -47,12 +47,6 @@ func init() {
 	cancelTradeoffCmd.PersistentFlags().StringVar(&port, "port", "9888", "network port")
 
 	// submit tx
-	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOSig, "spendUTXOSig", "", "spend UTXO Signature")
-	submitPaymentCmd.PersistentFlags().StringVar(&spendUTXOPublicKey, "spendUTXOPublicKey", "", "spend UTXO PublicKey")
-	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSig, "spendWalletSig", "", "spend Wallet Signature")
-	submitPaymentCmd.PersistentFlags().StringVar(&preimage, "preimage", "", "preimage")
-	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSigForFee, "spendWalletSigForFee", "", "spendWalletSigForFee")
-	submitPaymentCmd.PersistentFlags().StringVar(&spendWalletSigForContract, "spendWalletSigForContract", "", "spendWalletSigForContract")
 	submitPaymentCmd.PersistentFlags().StringVar(&ip, "ip", "127.0.0.1", "network address")
 	submitPaymentCmd.PersistentFlags().StringVar(&port, "port", "3000", "network port")
 }
