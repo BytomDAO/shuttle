@@ -204,11 +204,11 @@ func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 		OutputID: contractUTXOID,
 	}
 
-	spendWalletInput := SpendWalletInput{
-		Type:    "spend_wallet",
-		AssetID: contractAsset,
-		Amount:  contractAmount,
-	}
+	// spendWalletInput := SpendWalletInput{
+	// 	Type:    "spend_wallet",
+	// 	AssetID: contractAsset,
+	// 	Amount:  contractAmount,
+	// }
 
 	// outputs:
 	controlAddressOutput := ControlAddressOutput{
@@ -219,7 +219,8 @@ func BuildUnlockedTx(s *Server, guid, contractUTXOID, contractAsset, receiver st
 	}
 
 	var inputs, outputs []interface{}
-	inputs = append(inputs, spendUTXOInput, spendWalletInput)
+	// inputs = append(inputs, spendUTXOInput, spendWalletInput)
+	inputs = append(inputs, spendUTXOInput)
 	outputs = append(outputs, controlAddressOutput)
 	payload, err := json.Marshal(buildTxReq{
 		GUID:          guid,

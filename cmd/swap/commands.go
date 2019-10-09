@@ -463,31 +463,28 @@ var submitPaymentCmd = &cobra.Command{
 
 		switch action {
 		case "deployhtlc":
-			spendParametersNum := len(args) - 3
-			for i := 0; i < spendParametersNum; i++ {
-				wa = append(wa, args[3+i])
+			for i := 3; i < len(args); i++ {
+				wa = append(wa, args[i])
 				was = append(was, wa)
 				wa = []string{}
 			}
-		// case "callhtlc":
-		// 	if _, err := hex.DecodeString(preimage); err != nil || len(preimage) == 0 {
-		// 		fmt.Println("The part field of preimage is invalid:", preimage)
-		// 		os.Exit(0)
-		// 	}
+		case "callhtlc":
+			// callhtlc need 6 arguments at least
+			if len(args) < 6 {
+				fmt.Println("callhtlc need 3 arguments at least, len(args) is:", len(args))
+				os.Exit(0)
+			}
 
-		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
-		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
-		// 		os.Exit(0)
-		// 	}
+			wa = append(wa, args[3], args[4], "")
+			was = append(was, wa)
+			wa = []string{}
 
-		// 	if _, err := hex.DecodeString(spendWalletSig); err != nil || len(spendWalletSig) != 128 {
-		// 		fmt.Println("The part field of spendWalletSig is invalid:", spendWalletSig)
-		// 		os.Exit(0)
-		// 	}
+			for i := 5; i < len(args); i++ {
+				wa = append(wa, args[i])
+				was = append(was, wa)
+				wa = []string{}
+			}
 
-		// 	spendUTXOSignatures = append(spendUTXOSignatures, preimage, spendUTXOSig, "")
-		// 	spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-		// 	sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 		// case "cancelhtlc":
 		// 	if _, err := hex.DecodeString(spendUTXOSig); err != nil || len(spendUTXOSig) != 128 {
 		// 		fmt.Println("The part field of spendUTXOSig is invalid:", spendUTXOSig)
@@ -549,8 +546,6 @@ var submitPaymentCmd = &cobra.Command{
 			fmt.Println("action is invalid:", action)
 			os.Exit(0)
 		}
-		// spendWalletSignatures = append(spendWalletSignatures, spendWalletSig)
-		// sigs = append(sigs, spendUTXOSignatures, spendWalletSignatures)
 
 		server := &swap.Server{
 			IP:   ip,
